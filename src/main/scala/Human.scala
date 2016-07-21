@@ -91,8 +91,8 @@ abstract class Human {
 
 case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
   val sex = if (scala.util.Random.nextBoolean()) Male else Female
-  val baseTL: Int = father.birthTL + mother.birthTL
   val stochasticEffect: Int = math.round(scala.util.Random.nextGaussian() * 200).toInt
+  val baseTL: Int = (father.birthTL + mother.birthTL) / 2
   val pacEffect: Int = 15 * father.ageForYear(birthYear)
   val birthTL: Int = baseTL + stochasticEffect + pacEffect
 }
