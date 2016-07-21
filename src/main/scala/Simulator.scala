@@ -4,6 +4,7 @@
 
 import com.kenthorvath.telomere._
 import scala.annotation.tailrec
+import scala.util.Random
 
 object Simulator {
 
@@ -12,16 +13,26 @@ object Simulator {
     if (startYear >= stopYear)
       population
     else {
-      val nextGeneration: List[Human] = population
+      val femalePopulation = population
+        .filter(_.sex == Female)
+        .filter(_ isAliveAtYear startYear)
         .filter(_ hasChildAtYear startYear)
-        .map(h => Child(birthYear = startYear, father = h, mother = Eve))
+      val malePopulation = population
+        .filter(_.sex == Male)
+        .filter(_ isAliveAtYear startYear)
+        .filter(_ hasReachedSexualMaturityByYear startYear)
+      val nextGeneration: List[Human] = femalePopulation
+        .map(mother => Child(birthYear = startYear, father = Random.shuffle(malePopulation).head, mother = mother))
       iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population)
     }
   }
 
   def main(args: Array[String]) {
     val population: List[Human] = iterate(startYear = 1, stopYear = 100, stepSize = 1,
-      population = List(Adam))
+      population = (for {
+        i <- 1 to 100
+      } yield Child(father = Adam, mother = Eve, birthYear = 0)).toList)
+
     val lastGeneration = population.groupBy(_.birthYear)
     val yearMeanTL = lastGeneration.map(x => (x._1, x._2.foldLeft(0: BigInt)((TL: BigInt, h: Human) => TL + h.birthTL) / x._2.size)).toList.sortBy(_._1)
     val yearBirthCount = lastGeneration.map(x => (x._1, x._2.size)).toList.sortBy(_._1)
@@ -29,4 +40,5 @@ object Simulator {
     println(result)
     System.exit(0)
   }
+
 }
