@@ -1,5 +1,7 @@
 package com.kenthorvath.telomere
 
+import scala.util.Random
+
 /**
   * Created by kent on 6/17/16.
   */
@@ -74,12 +76,12 @@ abstract class Human {
 
   def predictDeathYear: Int = {
     // This should always return a value because probabilityOfDeath defaults to 1.00 by age 85
-    val deathAge: Int = (0 to 100).find(age => scala.util.Random.nextFloat() <= baseProbabilityOfDeath(age)).get
+    val deathAge: Int = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfDeath(age)).get
     birthYear + deathAge
   }
 
   def predictPregnancyAges: List[Int] = {
-    val allAges = (0 until deathYear).filter(age => scala.util.Random.nextFloat() <= baseProbabilityOfPregnancy(age)).toList
+    val allAges = (0 until deathYear).filter(age => Random.nextFloat() <= baseProbabilityOfPregnancy(age)).toList
     val nonConsecutiveAges: List[Int] =
       allAges
         .sorted
@@ -90,9 +92,9 @@ abstract class Human {
 }
 
 case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
-  val sex = if (scala.util.Random.nextBoolean()) Male else Female
-  val stochasticEffect: Int = math.round(scala.util.Random.nextGaussian() * 200).toInt
+  val sex = if (Random.nextBoolean()) Male else Female
   val baseTL: Int = (father.birthTL + mother.birthTL) / 2
+  val stochasticEffect: Int = math.round(Random.nextGaussian() * 200).toInt
   val pacEffect: Int = 15 * father.ageForYear(birthYear)
   val birthTL: Int = baseTL + stochasticEffect + pacEffect
 }
