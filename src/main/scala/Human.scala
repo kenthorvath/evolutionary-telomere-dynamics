@@ -44,6 +44,11 @@ abstract class Human {
     case _ => 0.0
   }
 
+  def hasReachedSexualMaturityByYear(year: Int): Boolean = year match {
+    case n if n >= 15 => true
+    case _ => false
+  }
+
   def isAliveAtYear(year: Int): Boolean = (year >= birthYear) && (year < deathYear)
 
   def baseProbabilityOfDeath(age: Int): Double = age match {
