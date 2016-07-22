@@ -34,10 +34,10 @@ abstract class Human {
 
   def baseProbabilityOfPregnancy(age: Int): Double = age match {
     //Citation: DOI: 10.1002/ajpa.22495
-    case n if n <= 10 => 0.0
+    case n if n <= 13 => 0.0
     case n if n <= 15 => 0.01
     case n if n <= 20 => 0.15
-    case n if n <= 25 => 0.25
+    case n if n <= 25 => 0.28
     case n if n <= 35 => 0.28
     case n if n <= 40 => 0.25
     case n if n <= 45 => 0.15
@@ -46,8 +46,8 @@ abstract class Human {
     case _ => 0.0
   }
 
-  def hasReachedSexualMaturityByYear(year: Int): Boolean = year match {
-    case n if n >= 15 => true
+  def hasReachedSexualMaturityByYear(year: Int): Boolean = ageForYear(year) match {
+    case n if n >= 13 => true
     case _ => false
   }
 
