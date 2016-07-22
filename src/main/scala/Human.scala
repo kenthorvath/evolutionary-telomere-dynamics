@@ -22,10 +22,10 @@ abstract class Human {
 
   def ageForYear(year: Int): Int = year - birthYear
 
-  def LTLForYear(year: Int): Int = sex match {
-    //Citation: Hum Mol Gen. 2007
-    case Male => birthTL - 31 * ageForYear(year)
-    case Female => birthTL - 21 * ageForYear(year)
+  def LTLForYear(year: Int): Int = ageForYear(year) match {
+    case 0 => birthTL
+    case n if n <= 20 => LTLForYear(year - 1) - 70
+    case _ => LTLForYear(year - 1) - 25
   }
 
   def hasChildAtYear(year: Int): Boolean = {
