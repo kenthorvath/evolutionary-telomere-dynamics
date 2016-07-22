@@ -102,11 +102,11 @@ case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
 case object Adam extends Human {
   val sex = Male
   val birthYear = 0
-  val birthTL = 10000
+  val birthTL = 9400
 }
 
 case object Eve extends Human {
   val sex = Female
   val birthYear = 0
-  val birthTL = 10000
+  val birthTL = 9600
 }
