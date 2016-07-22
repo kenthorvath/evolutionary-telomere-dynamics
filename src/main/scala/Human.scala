@@ -94,9 +94,9 @@ abstract class Human {
 case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
   val sex = if (Random.nextBoolean()) Male else Female
   val baseTL: Int = (father.birthTL + mother.birthTL) / 2
-  val stochasticEffect: Int = math.round(Random.nextGaussian() * 200).toInt
   val pacEffect: Int = 15 * father.ageForYear(birthYear)
   val birthTL: Int = baseTL + stochasticEffect + pacEffect
+  val stochasticEffect: Int = math.round(Random.nextGaussian() * 700).toInt
 }
 
 case object Adam extends Human {
