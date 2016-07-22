@@ -30,7 +30,7 @@ object Simulator {
   def main(args: Array[String]) {
     val population: List[Human] = iterate(startYear = 1, stopYear = 100, stepSize = 1,
       population = (for {
-        i <- 1 to 100
+        i <- 1 to 1000
       } yield Child(father = Adam, mother = Eve, birthYear = 0)).toList)
 
     val lastGeneration = population.groupBy(_.birthYear)
