@@ -13,7 +13,7 @@ case object Female extends Sex
 
 
 abstract class Human {
-  val sex: Sex
+  val sex: Sex = sexGenerator
   val birthTL: Int
   val birthYear: Int
 
@@ -21,6 +21,7 @@ abstract class Human {
   val pregnancyAges: List[Int] = predictPregnancyAges
 
   def ageForYear(year: Int): Int = year - birthYear
+  def sexGenerator: Sex
 
   def LTLForYear(year: Int): Int = ageForYear(year) match {
     case 0 => birthTL
@@ -92,7 +93,7 @@ abstract class Human {
 }
 
 case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
-  val sex = if (Random.nextBoolean()) Male else Female
+  def sexGenerator: Sex = if (Random.nextBoolean()) Male else Female
   val baseTL: Int = (father.birthTL + mother.birthTL) / 2
   val stochasticEffect: Int = math.round(Random.nextGaussian() * 700).toInt
   //  val sexEffect: Int = if (sex == Female) 200 else 0
@@ -101,13 +102,13 @@ case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
 }
 
 case object Adam extends Human {
-  val sex = Male
+  def sexGenerator = Male
   val birthYear = 0
   val birthTL = 9400
 }
 
 case object Eve extends Human {
-  val sex = Female
+  def sexGenerator = Female
   val birthYear = 0
   val birthTL = 9600
 }
