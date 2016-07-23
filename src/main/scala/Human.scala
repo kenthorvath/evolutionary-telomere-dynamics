@@ -54,6 +54,30 @@ abstract class Human {
 
   def isAliveAtYear(year: Int): Boolean = (year >= birthYear) && (year < deathYear)
 
+  def baseProbabilityOfCancer(age: Int): Double = {
+    def cancerIncidenceAfter20(age: Int): Double = {
+      val c: Map[Sex, Int] = Map(Male -> 311, Female -> 178)
+      val h: Map[Sex, Double] = Map(Male -> 5.50, Female -> 4.44)
+      val r: Map[Sex, Double] = Map(Male -> 0.090, Female -> 0.063)
+      val p2: Map[Sex, Double] = Map(Male -> 1.0e-9, Female -> 6.0e-9)
+      val mcs20: Double = 1.0e8
+      val tlCrit: Double = 6.5
+      val tl20: Double = LTLForYear(birthYear + 20).toFloat / 1000
+      val q: Double = 0.025
+      val dTL = tl20 - tlCrit
+      val ageAfter20 = age
+      val incidencePer100K: Double =
+        c(sex) * (mcs20 / (1 + math.exp(-h(sex) * (dTL - q * ageAfter20)))) * p2(sex) * math.exp(r(sex) * ageAfter20)
+      incidencePer100K / 100e3
+    }
+
+    age match {
+      case n if n <= 20 => 0.0
+      case n if n > 20 => cancerIncidenceAfter20(n)
+    }
+
+  }
+
   def baseProbabilityOfDeath(age: Int): Double = age match {
     //Citation: DOI: 10.1002/ajpa.22495
     case 0 => 0.07
@@ -77,8 +101,9 @@ abstract class Human {
 
   def predictDeathYear: Int = {
     // This should always return a value because probabilityOfDeath defaults to 1.00 by age 85
-    val deathAge: Int = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfDeath(age)).get
-    birthYear + deathAge
+    val deathAgeFromCancer: Option[Int] = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age))
+    val deathAgeWithoutCancer: Int = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfDeath(age)).get
+    birthYear + math.min(deathAgeFromCancer.getOrElse(deathAgeWithoutCancer), deathAgeWithoutCancer)
   }
 
   def predictPregnancyAges: List[Int] = {
