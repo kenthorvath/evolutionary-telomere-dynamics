@@ -31,7 +31,7 @@ object Simulator {
   def main(args: Array[String]) {
     val population: List[Human] = iterate(startYear = 1, stopYear = 300, stepSize = 1,
       population = (for {
-        i <- 1 to 1000
+        i <- 1 to 100
       } yield Child(father = Adam, mother = Eve, birthYear = 0)).toList)
 
     val result = (0 to 300).map(year =>
