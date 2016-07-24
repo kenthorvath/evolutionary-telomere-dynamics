@@ -119,7 +119,6 @@ abstract class Human {
         .foldLeft(List[Int]())((acc, age) => if (!acc.contains(age - 1)) age :: acc else acc)
     nonConsecutiveAges
   }
-
 }
 
 case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
@@ -128,8 +127,8 @@ case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
   val baseTL: Int = (father.birthTL + mother.birthTL) / 2
   val stochasticEffect: Int = math.round(Random.nextGaussian() * 700).toInt
   //  val sexEffect: Int = if (sex == Female) 200 else 0
-  //  val pacEffect: Int = 15 * father.ageForYear(birthYear)
-  val birthTL: Int = baseTL + stochasticEffect
+  val pacEffect: Int = -15 * (55 - father.ageForYear(birthYear))
+  val birthTL: Int = baseTL + stochasticEffect + pacEffect
 }
 
 case object Adam extends Human {
