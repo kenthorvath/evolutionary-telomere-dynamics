@@ -48,7 +48,7 @@ abstract class Human {
   }
 
   def hasReachedSexualMaturityByYear(year: Int): Boolean = ageForYear(year) match {
-    case n if n >= 13 => true
+    case n if n >= 13 && n <= 55 => true
     case _ => false
   }
 
