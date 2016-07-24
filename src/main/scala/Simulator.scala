@@ -34,7 +34,7 @@ object Simulator {
         i <- 1 to 1000
       } yield Child(father = Adam, mother = Eve, birthYear = 0)).toList)
 
-   val result = (0 to 300).map(year =>
+    val result = (0 to 300).map(year =>
       (year, {
         val birthByYear = population.filter(_.birthYear == year).map(_.birthTL);
         Try(birthByYear.sum / birthByYear.length).getOrElse(0)
