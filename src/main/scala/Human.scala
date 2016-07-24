@@ -102,9 +102,13 @@ abstract class Human {
 
   def predictDeathYear: Int = {
     // This should always return a value because probabilityOfDeath defaults to 1.00 by age 85
+    val deathAgeFromBrink: Option[Int] = (0 to 100).find(age => LTLForYear(birthYear + age) <= 5500)
     val deathAgeFromCancer: Option[Int] = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age))
     val deathAgeWithoutCancer: Int = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfDeath(age)).get
-    birthYear + math.min(deathAgeFromCancer.getOrElse(deathAgeWithoutCancer), deathAgeWithoutCancer)
+    birthYear + List(
+      deathAgeFromBrink.getOrElse(deathAgeWithoutCancer),
+      deathAgeFromCancer.getOrElse(deathAgeWithoutCancer),
+      deathAgeWithoutCancer).min
   }
 
   def predictPregnancyAges: List[Int] = {
