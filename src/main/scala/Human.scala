@@ -65,7 +65,7 @@ abstract class Human {
       val tl20: Double = LTLForYear(birthYear + 20).toFloat / 1000
       val q: Double = 0.025
       val dTL = tl20 - tlCrit
-      val ageAfter20 = age
+      val ageAfter20 = age - 20
       val incidencePer100K: Double =
         c(sex) * (mcs20 / (1 + math.exp(-h(sex) * (dTL - q * ageAfter20)))) * p2(sex) * math.exp(r(sex) * ageAfter20)
       incidencePer100K / 100e3
