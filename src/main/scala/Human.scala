@@ -24,10 +24,13 @@ abstract class Human {
 
   def sexGenerator: Sex
 
-  def LTLForYear(year: Int): Int = ageForYear(year) match {
-    case 0 => birthTL
-    case n if n <= 20 => LTLForYear(year - 1) - 70
-    case _ => LTLForYear(year - 1) - 25
+  def LTLForYear(year: Int): Int = {
+    val result = ageForYear(year) match {
+      case n if n <= 20 => birthTL - 70 * n
+      case n => birthTL - (70 * 20) - (25 * (n - 20))
+    }
+    assert(result >= 0, "LTL cannot be negative")
+    result
   }
 
   def hasChildAtYear(year: Int): Boolean = {
