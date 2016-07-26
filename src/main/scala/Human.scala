@@ -13,16 +13,18 @@ case object Female extends Sex
 
 
 abstract class Human {
-  val sex: Sex = sexGenerator
+  val sex: Sex
   val birthTL: Int
-  val birthYear: Int
 
-  val deathYear: Int = predictDeathYear
+  val birthYear: Int
+  assert(birthYear >= 0, "Birth year must be non-negative")
+
+  val deathYear: Int
   val pregnancyAges: List[Int] = predictPregnancyAges
 
-  def ageForYear(year: Int): Int = year - birthYear
+  def deathAge: Int = ageForYear(deathYear)
 
-  def sexGenerator: Sex
+  def ageForYear(year: Int): Int = year - birthYear
 
   def LTLForYear(year: Int): Int = {
     val result = ageForYear(year) match {
@@ -127,9 +129,10 @@ abstract class Human {
 }
 
 case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
-  def sexGenerator: Sex = if (Random.nextBoolean()) Male else Female
   assert(birthYear > father.birthYear, "Child cannot be born before father")
   assert(birthYear > mother.birthYear, "Child cannot be born before mother")
+
+  val sex: Sex = if (Random.nextBoolean()) Male else Female
 
   val baseTL: Int = (father.birthTL + mother.birthTL) / 2
   val stochasticEffect: Int = math.round(Random.nextGaussian() * 700).toInt
@@ -140,18 +143,24 @@ case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
   }
 
   val birthTL: Int = baseTL + stochasticEffect + pacEffect
+
+  val deathYear = predictDeathYear
+
+  override def ageForYear(year: Int): Int = year - birthYear
+
+  override val pregnancyAges: List[Int] = predictPregnancyAges
 }
 
 case object Adam extends Human {
-  def sexGenerator = Male
-
+  override val sex = Male
   val birthYear = 0
   val birthTL = 9500
+  val deathYear = birthYear
 }
 
 case object Eve extends Human {
-  def sexGenerator = Female
-
+  override val sex = Female
   val birthYear = 0
   val birthTL = 9500
+  val deathYear = birthYear
 }
