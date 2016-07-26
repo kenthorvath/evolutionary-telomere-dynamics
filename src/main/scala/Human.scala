@@ -104,12 +104,13 @@ abstract class Human {
   }
 
   def predictDeathYear: Int = {
-    // This should always return a value because probabilityOfDeath defaults to 1.00 by age 85
-    val deathAgeFromBrink: Option[Int] = (0 to 100).find(age => LTLForYear(birthYear + age) <= 5500)
+    // This should always return a value because baseProbabilityOfDeath defaults to 1.00
+    val deathAgeFromBrink: Int = Stream.from(1).find(age => LTLForYear(birthYear + age) <= 5500).get
     val deathAgeFromCancer: Option[Int] = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age))
-    val deathAgeWithoutCancer: Int = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfDeath(age)).get
+    val deathAgeWithoutCancer: Int = Stream.from(0).find(age => Random.nextFloat() <= baseProbabilityOfDeath(age)).get
+
     birthYear + List(
-      deathAgeFromBrink.getOrElse(deathAgeWithoutCancer),
+      deathAgeFromBrink,
       deathAgeFromCancer.getOrElse(deathAgeWithoutCancer),
       deathAgeWithoutCancer).min
   }
