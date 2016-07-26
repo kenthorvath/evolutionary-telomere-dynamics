@@ -22,6 +22,7 @@ object Simulator {
         .filter(_.sex == Male)
         .filter(_ isAliveAtYear startYear)
         .filter(_ isCapableOfMatingForYear startYear)
+
       val nextGeneration: List[Human] = femalePopulation
         .map(mother => Child(birthYear = startYear, father = Random.shuffle(malePopulation).head, mother = mother))
       iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population)
