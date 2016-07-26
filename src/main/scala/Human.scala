@@ -128,6 +128,8 @@ abstract class Human {
 
 case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
   def sexGenerator: Sex = if (Random.nextBoolean()) Male else Female
+  assert(birthYear > father.birthYear, "Child cannot be born before father")
+  assert(birthYear > mother.birthYear, "Child cannot be born before mother")
 
   val baseTL: Int = (father.birthTL + mother.birthTL) / 2
   val stochasticEffect: Int = math.round(Random.nextGaussian() * 700).toInt
