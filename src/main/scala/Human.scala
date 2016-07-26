@@ -115,7 +115,7 @@ abstract class Human {
   }
 
   def predictPregnancyAges: List[Int] = {
-    val allAges = (0 until deathYear).filter(age => Random.nextFloat() <= baseProbabilityOfPregnancy(age)).toList
+    val allAges = (0 until deathAge).filter(age => Random.nextFloat() <= baseProbabilityOfPregnancy(age)).toList
     val nonConsecutiveAges: List[Int] =
       allAges
         .sorted
