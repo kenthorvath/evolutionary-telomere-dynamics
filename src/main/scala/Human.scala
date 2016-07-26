@@ -146,12 +146,12 @@ case object Adam extends Human {
   def sexGenerator = Male
 
   val birthYear = 0
-  val birthTL = 9400
+  val birthTL = 9500
 }
 
 case object Eve extends Human {
   def sexGenerator = Female
 
   val birthYear = 0
-  val birthTL = 9600
+  val birthTL = 9500
 }
