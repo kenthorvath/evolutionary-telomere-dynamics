@@ -25,6 +25,10 @@ object Simulator {
 
       val nextGeneration: List[Human] = femalePopulation
         .map(mother => Child(birthYear = startYear, father = Random.shuffle(malePopulation).head, mother = mother))
+      //      val birthByYear = nextGeneration.map(x => x.deathYear - x.birthYear)
+      //      val avgDeathAge = Try(birthByYear.sum / birthByYear.length).getOrElse(None)
+      //      println(s"year= ${startYear}, fertile females = ${femalePopulation.size}, fertile males = ${malePopulation.size}, deathAge = ${avgDeathAge}")
+
       iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population)
     }
   }
