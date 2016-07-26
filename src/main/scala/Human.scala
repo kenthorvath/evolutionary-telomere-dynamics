@@ -67,6 +67,7 @@ abstract class Human {
       val mcs20: Double = 1.0e8
       val tlCrit: Double = 6.5
       val tl20: Double = LTLForYear(birthYear + 20).toFloat / 1000
+      assert(tl20 > 0, "LTL20 parameter cannot be negative for cancer incidence")
       val q: Double = 0.025
       val dTL = tl20 - tlCrit
       val ageAfter20 = age - 20
