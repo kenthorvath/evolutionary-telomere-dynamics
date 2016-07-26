@@ -34,22 +34,43 @@ object Simulator {
   }
 
   def main(args: Array[String]) {
-    val population: List[Human] = iterate(startYear = 1, stopYear = 300, stepSize = 1,
+    val runLength = 500
+    val population: List[Human] = iterate(startYear = 1, stopYear = runLength, stepSize = 1,
       population = (for {
-        i <- 1 to 100
-      } yield Child(father = Adam, mother = Eve, birthYear = 0)).toList)
+        i <- 1 to 1000
+      } yield Child(father = Adam, mother = Eve, birthYear = 1)).toList)
 
-    val result = (0 to 300).map(year =>
-      (year, {
+    val result = (1 until runLength).map(year =>
+      Vector(Some(year), {
+        // average newborn TL
         val birthByYear = population.filter(_.birthYear == year).map(_.birthTL);
-        Try(birthByYear.sum / birthByYear.length).getOrElse(0)
+        Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
       },
-        population.count(_.birthYear == year),
-        population.count(_.isAliveAtYear(year)))
+        Some(population.count(_.birthYear == year)),
+        Some(population.count(_.isAliveAtYear(year))), {
+          // average newborn death age
+          val birthByYear = population.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear)
+          Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+        }, {
+          val populationSizeLastYear = population.count(_.isAliveAtYear(year - 1))
+          val populationSizeThisYear = population.count(_.isAliveAtYear(year))
+          val birthsThisYear = population.count(_.birthYear == year)
+          val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
+          Some(deathsThisYear)
+        }
+      )
     )
-    println(result)
 
+    // Print results as CSV
+    println("year, avgNewbornTL, birthRate, populationCount, avgNewbornLifeExpectancy, deathRate")
+    println({
+      result.map(line =>
+        line.head.getOrElse("") +
+          line.tail.map(item =>
+            s"${item.getOrElse("")}")
+            .foldLeft("")(_ + "," + _))
+        .foldLeft("")(_ + _ + "\n")
+    })
     System.exit(0)
   }
-
 }
