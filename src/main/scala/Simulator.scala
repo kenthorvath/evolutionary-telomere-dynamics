@@ -34,6 +34,10 @@ object Simulator {
   }
 
   def main(args: Array[String]) {
+    //Initialize Random number generator for reproducibility
+    val randomSeed: Int = 0xdf2c9fb9 // Taken from truncated first commit hash, if curious
+    Random.setSeed(randomSeed)
+
     val runLength = 500
     val population: List[Human] = iterate(startYear = 1, stopYear = runLength, stepSize = 1,
       population = (for {
