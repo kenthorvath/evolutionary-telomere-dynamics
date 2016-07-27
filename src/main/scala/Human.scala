@@ -136,7 +136,7 @@ case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
 
   val baseTL: Int = (father.birthTL + mother.birthTL) / 2
   val stochasticEffect: Int = math.round(Random.nextGaussian() * 700).toInt
-  //  val sexEffect: Int = if (sex == Female) 200 else 0
+  val sexEffect: Int = if (sex == Female) 200 else 0
   val pacEffect: Int = father match {
     case Adam => 0
     case _ => -15 * (55 - father.ageForYear(birthYear))
