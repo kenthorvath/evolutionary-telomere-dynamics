@@ -34,48 +34,52 @@ object Simulator {
   }
 
   def main(args: Array[String]) {
+    // Print CSV header
+    println("trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate")
     //Initialize Random number generator for reproducibility
-    val trialNumber = 1
-    val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
-    Random.setSeed(randomSeed)
+    (1 to 20).foreach(trialNumber => {
+      val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
+      Random.setSeed(randomSeed)
 
-    val runLength = 500
-    val population: List[Human] = iterate(startYear = 1, stopYear = runLength, stepSize = 1,
-      population = (for {
-        i <- 1 to 1000
-      } yield Child(father = Adam, mother = Eve, birthYear = 1)).toList)
+      val runLength = 200
+      val population: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, stepSize = 1,
+        population = (for {
+          i <- 1 to 1000
+        } yield Child(father = Adam, mother = Eve, birthYear = 1)).toList)
 
-    val result = (1 until runLength).map(year =>
-      Vector(Some(year), {
-        // average newborn TL
-        val birthByYear = population.filter(_.birthYear == year).map(_.birthTL);
-        Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
-      },
-        Some(population.count(_.birthYear == year)),
-        Some(population.count(_.isAliveAtYear(year))), {
-          // average newborn death age
-          val birthByYear = population.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear)
+      val result = (1 to runLength).map(year =>
+        Vector(Some(year), {
+          // average newborn TL
+          val birthByYear = population.filter(_.birthYear == year).map(_.birthTL);
           Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
-        }, {
-          val populationSizeLastYear = population.count(_.isAliveAtYear(year - 1))
-          val populationSizeThisYear = population.count(_.isAliveAtYear(year))
-          val birthsThisYear = population.count(_.birthYear == year)
-          val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
-          Some(deathsThisYear)
-        }
+        },
+          Some(population.count(_.birthYear == year)),
+          Some(population.count(_.isAliveAtYear(year))), {
+            // average newborn death age
+            val birthByYear = population.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear)
+            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+          }, {
+            val populationSizeLastYear = population.count(_.isAliveAtYear(year - 1))
+            val populationSizeThisYear = population.count(_.isAliveAtYear(year))
+            val birthsThisYear = population.count(_.birthYear == year)
+            val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
+            Some(deathsThisYear)
+          }
+        )
       )
-    )
 
-    // Print results as CSV
-    println("year, avgNewbornTL, birthRate, populationCount, avgNewbornLifeExpectancy, deathRate")
-    println({
-      result.map(line =>
-        line.head.getOrElse("") +
-          line.tail.map(item =>
-            s"${item.getOrElse("")}")
-            .foldLeft("")(_ + "," + _))
-        .foldLeft("")(_ + _ + "\n")
+      // Print results as CSV
+      println({
+        result.map(line =>
+          trialNumber +
+            line.map(item =>
+              s"${item.getOrElse("")}")
+              .foldLeft("")(_ + "," + _))
+          .foldLeft("")(_ + _ + "\n")
+      })
     })
+
     System.exit(0)
   }
+
 }
