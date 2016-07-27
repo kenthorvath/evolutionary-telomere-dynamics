@@ -142,7 +142,7 @@ case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
     case _ => -15 * (55 - father.ageForYear(birthYear))
   }
 
-  val birthTL: Int = baseTL + stochasticEffect + pacEffect
+  val birthTL: Int = baseTL + stochasticEffect
 
   val deathYear = predictDeathYear
 
