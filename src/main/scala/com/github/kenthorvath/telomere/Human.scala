@@ -67,11 +67,11 @@ abstract class Human {
       val r: Map[Sex, Double] = Map(Male -> 0.090, Female -> 0.063)
       val p2: Map[Sex, Double] = Map(Male -> 1.0e-9, Female -> 6.0e-9)
       val mcs20: Double = 1.0e8
-      val tlCrit: Double = 6.5
+      val tlCritical: Double = 6.5
       val tl20: Double = LTLForYear(birthYear + 20).toFloat / 1000
       assert(tl20 > 0, "LTL20 parameter cannot be negative for cancer incidence")
       val q: Double = 0.025
-      val dTL = tl20 - tlCrit
+      val dTL = tl20 - tlCritical
       val ageAfter20 = age - 20
       val incidencePer100K: Double =
         c(sex) * (mcs20 / (1 + math.exp(-h(sex) * (dTL - q * ageAfter20)))) * p2(sex) * math.exp(r(sex) * ageAfter20)
