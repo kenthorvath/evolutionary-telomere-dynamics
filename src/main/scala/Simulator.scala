@@ -31,10 +31,9 @@ object Simulator {
   }
 
   def main(args: Array[String]) {
-    // Print CSV header
-    println("trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate")
+
     //Initialize Random number generator for reproducibility
-    (1 to 20).foreach(trialNumber => {
+    val results = (1 to 20).flatMap(trialNumber => {
       val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
       Random.setSeed(randomSeed)
 
@@ -44,12 +43,14 @@ object Simulator {
           i <- 1 to 1000
         } yield Child(father = Adam, mother = Eve, birthYear = 1)).toList)
 
-      val result = (1 to runLength).map(year =>
-        Vector(Some(year), {
-          // average newborn TL
-          val birthByYear = population.filter(_.birthYear == year).map(_.birthTL)
-          Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
-        },
+      val trialResult = (1 to runLength).map(year =>
+        Vector(
+          Some(trialNumber),
+          Some(year), {
+            // average newborn TL
+            val birthByYear = population.filter(_.birthYear == year).map(_.birthTL)
+            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+          },
           Some(population.count(_.birthYear == year)),
           Some(population.count(_.isAliveAtYear(year))), {
             // average newborn death age
@@ -64,16 +65,20 @@ object Simulator {
           }
         )
       )
+      trialResult
+    }
+    )
 
-      // Print results as CSV
-      println({
-        result.map(line =>
-          trialNumber +
-            line.map(item =>
-              s"${item.getOrElse("")}")
-              .foldLeft("")(_ + "," + _))
-          .foldLeft("")(_ + _ + "\n")
-      })
+    // Print results as CSV
+    // Print CSV header
+    println("trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate")
+    println({
+      results.map(line =>
+        line.head.getOrElse("") +
+        line.tail.map(item =>
+          s"${item.getOrElse("")}")
+          .foldLeft("")(_ + "," + _))
+        .foldLeft("")(_ + _ + "\n")
     })
 
     System.exit(0)
