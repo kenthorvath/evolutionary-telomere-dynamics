@@ -1,4 +1,4 @@
-package com.kenthorvath.telomere
+package com.github.kenthorvath.telomere
 
 import scala.util.Random
 

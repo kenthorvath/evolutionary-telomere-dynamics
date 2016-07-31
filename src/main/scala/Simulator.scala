@@ -2,7 +2,7 @@
   * Created by kent on 6/17/16.
   */
 
-import com.kenthorvath.telomere._
+import com.github.kenthorvath.telomere._
 
 import scala.annotation.tailrec
 import scala.util.{Random, Try}

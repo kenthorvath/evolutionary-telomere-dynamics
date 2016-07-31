@@ -2,8 +2,7 @@
   * Created by kent on 7/24/16.
   */
 
-import com.kenthorvath.telomere._
-
+import com.github.kenthorvath.telomere._
 import org.scalacheck.Properties
 import org.scalacheck.Prop.{forAll, BooleanOperators}
 
