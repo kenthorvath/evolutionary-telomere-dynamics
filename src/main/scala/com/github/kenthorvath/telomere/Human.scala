@@ -5,6 +5,7 @@ import scala.util.Random
 /**
   * Created by kent on 6/17/16.
   */
+
 sealed trait Sex
 
 case object Male extends Sex
@@ -12,7 +13,9 @@ case object Male extends Sex
 case object Female extends Sex
 
 
+
 abstract class Human {
+  val modelOptions: Model.Options
   val sex: Sex
   val birthTL: Int
 
@@ -20,7 +23,7 @@ abstract class Human {
   assert(birthYear >= 0, "Birth year must be non-negative")
 
   val deathYear: Int
-  val pregnancyAges: List[Int] = predictPregnancyAges
+  val pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
 
   def deathAge: Int = ageForYear(deathYear)
 
@@ -37,20 +40,6 @@ abstract class Human {
 
   def hasChildAtYear(year: Int): Boolean = {
     pregnancyAges.contains(ageForYear(year))
-  }
-
-  def baseProbabilityOfPregnancy(age: Int): Double = age match {
-    //Citation: DOI: 10.1002/ajpa.22495
-    case n if n <= 13 => 0.0
-    case n if n <= 15 => 0.01
-    case n if n <= 20 => 0.15
-    case n if n <= 25 => 0.28
-    case n if n <= 35 => 0.28
-    case n if n <= 40 => 0.25
-    case n if n <= 45 => 0.15
-    case n if n <= 50 => 0.08
-    case n if n <= 55 => 0.01
-    case _ => 0.0
   }
 
   def isCapableOfMatingForYear(year: Int): Boolean = ageForYear(year) match {
@@ -85,32 +74,14 @@ abstract class Human {
 
   }
 
-  def baseProbabilityOfDeath(age: Int): Double = age match {
-    //Citation: DOI: 10.1002/ajpa.22495
-    case 0 => 0.07
-    case 1 => 0.07
-    case 2 => 0.06
-    case 3 => 0.05
-    case 4 => 0.04
-    case 5 => 0.03
-    case n if n <= 10 => 0.02
-    case n if n <= 40 => 0.015
-    case n if n <= 45 => 0.018
-    case n if n <= 50 => 0.02
-    case n if n <= 55 => 0.03
-    case n if n <= 60 => 0.04
-    case n if n <= 65 => 0.08
-    case n if n <= 70 => 0.12
-    case n if n <= 75 => 0.20
-    case n if n <= 85 => 0.30
-    case _ => 1.00
-  }
-
-  def predictDeathYear: Int = {
+  def predictDeathYear(modelOptions: Model.Options): Int = {
     // This should always return a value because baseProbabilityOfDeath defaults to 1.00
     val deathAgeFromBrink: Int = Stream.from(1).find(age => LTLForYear(birthYear + age) <= 5500).get
-    val deathAgeFromCancer: Option[Int] = (0 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age))
-    val deathAgeWithoutCancer: Int = Stream.from(0).find(age => Random.nextFloat() <= baseProbabilityOfDeath(age)).get
+    val deathAgeFromCancer: Option[Int] = modelOptions.tlDependentCancer match {
+      case true => (1 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age))
+      case false => None
+    }
+    val deathAgeWithoutCancer: Int = Stream.from(0).find(age => Random.nextFloat() <= modelOptions.allCauseMortalityForAge.f(age)).get
 
     birthYear + List(
       deathAgeFromBrink,
@@ -118,8 +89,8 @@ abstract class Human {
       deathAgeWithoutCancer).min
   }
 
-  def predictPregnancyAges: List[Int] = {
-    val allAges = (0 until deathAge).filter(age => Random.nextFloat() <= baseProbabilityOfPregnancy(age)).toList
+  def predictPregnancyAges(modelOptions: Model.Options): List[Int] = {
+    val allAges = (0 until deathAge).filter(age => Random.nextFloat() <= modelOptions.fecundityForAge.f(age)).toList
     val nonConsecutiveAges: List[Int] =
       allAges
         .sorted
@@ -128,39 +99,44 @@ abstract class Human {
   }
 }
 
-case class Child(birthYear: Int, father: Human, mother: Human) extends Human {
+case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Model.Options) extends Human {
   assert(birthYear > father.birthYear, "Child cannot be born before father")
   assert(birthYear > mother.birthYear, "Child cannot be born before mother")
 
   val sex: Sex = if (Random.nextBoolean()) Male else Female
+  val tlStandardDeviation: Int = 700
 
-  val baseTL: Int = (father.birthTL + mother.birthTL) / 2
-  val stochasticEffect: Int = math.round(Random.nextGaussian() * 700).toInt
+  val baseTL: Int = ((1.0 - modelOptions.maternalInheritance) * father.birthTL +
+    modelOptions.maternalInheritance * mother.birthTL).round.toInt
+  val stochasticEffect: Int = math.round(Random.nextGaussian() * tlStandardDeviation).toInt
   val sexEffect: Int = if (sex == Female) 150 else 0
   val pacEffect: Int = father match {
-    case Adam => 0
+    case Adam(modelOptions) => 0
     case _ => -15 * (55 - father.ageForYear(birthYear))
   }
 
-  val birthTL: Int = baseTL + stochasticEffect
+  val birthTL: Int = baseTL + stochasticEffect +
+    (if (modelOptions.sexEffect) sexEffect else 0) +
+    (if (modelOptions.pacEffect) pacEffect else 0)
 
-  val deathYear = predictDeathYear
+
+  val deathYear = predictDeathYear(modelOptions)
 
   override def ageForYear(year: Int): Int = year - birthYear
 
-  override val pregnancyAges: List[Int] = predictPregnancyAges
+  override val pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
 }
 
-case object Adam extends Human {
+case class Adam(modelOptions: Model.Options) extends Human {
   override val sex = Male
   val birthYear = 0
-  val birthTL = 9500
+  val birthTL = modelOptions.initialPopulationTL
   val deathYear = birthYear
 }
 
-case object Eve extends Human {
+case class Eve(modelOptions: Model.Options) extends Human {
   override val sex = Female
   val birthYear = 0
-  val birthTL = 9500
+  val birthTL = modelOptions.initialPopulationTL
   val deathYear = birthYear
 }
