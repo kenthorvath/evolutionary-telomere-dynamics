@@ -52,13 +52,14 @@ object Model {
 
   val archaicFecundity = FecundityModel(baseProbabilityOfPregnancy _, "Archaic")
 
-  case class CancerIncidenceAgeAdjustment(f: (Int, Int) => (Int, Int), description: String) {
+  case class CancerIncidenceAgeAdjustment(ageAdjustment: Int = 0, tlAdjustment: Int = 0, description: String) {
     override def toString = description
   }
 
   def csvHeader: String = {
     s"sexEffect," +
       s"pacEffect," +
+      s"pacAgeCenter," +
       s"tlDependentCA," +
       s"CA Risk Adjustment," +
       s"Maternal Inheritance," +
@@ -67,7 +68,7 @@ object Model {
       s"Initial Population TL"
   }
 
-  case class Options(pacEffect: Boolean, sexEffect: Boolean, maternalInheritance: Double,
+  case class Options(pacEffect: Boolean, pacAgeCenter: Int, sexEffect: Boolean, maternalInheritance: Double,
                      tlDependentCancer: Boolean, cancerIncidenceAgeTLAdjustment: Option[CancerIncidenceAgeAdjustment] = None,
                      allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
     assert(maternalInheritance >= 0.0 && maternalInheritance <= 1.0, "Maternal contribution must be between 0 and 1")
@@ -78,6 +79,7 @@ object Model {
       def withOrWithoutIndicator(x: Boolean): String = if (x) "(+)" else "(-)"
       s"${withOrWithoutIndicator(sexEffect)}," +
         s"${withOrWithoutIndicator(pacEffect)}," +
+        s"$pacAgeCenter," +
         s"${withOrWithoutIndicator(tlDependentCancer)}," +
         s"${cancerIncidenceAgeTLAdjustment.getOrElse("None")}," +
         s"$maternalInheritance," +

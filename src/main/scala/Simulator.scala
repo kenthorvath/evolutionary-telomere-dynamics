@@ -6,6 +6,9 @@ import com.github.kenthorvath.telomere._
 
 import scala.annotation.tailrec
 import scala.util.{Random, Try}
+import java.io._
+
+import com.github.kenthorvath.telomere.Model.CancerIncidenceAgeAdjustment
 
 object Simulator {
 
@@ -14,18 +17,18 @@ object Simulator {
     if (startYear >= stopYear)
       population
     else {
-      val femalePopulation = population
+      val femalePopulation: List[Human] = population
         .filter(_.sex == Female)
         .filter(_ isAliveAtYear startYear)
         .filter(_ hasChildAtYear startYear)
-      val malePopulation = population
+      val malePopulation: List[Human] = population
         .filter(_.sex == Male)
         .filter(_ isAliveAtYear startYear)
         .filter(_ isCapableOfMatingForYear startYear)
 
       val nextGeneration: List[Human] = femalePopulation
-        .map(mother => Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
-          mother = mother, modelOptions = modelOptions))
+        .flatMap(mother => Try(List(Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
+          mother = mother, modelOptions = modelOptions))).getOrElse(Nil))
 
       iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population, modelOptions)
     }
@@ -35,29 +38,41 @@ object Simulator {
 
 
     val models = for {
-      pacEffect <- List(true, false)
-      sexEffect <- List(true, false)
+      pacEffect <- List(false)
+//      pacAgeCenter <- 29 to 33 by 1 if pacEffect
+      pacAgeCenter <- List(31)
+      sexEffect <- List(false)
       tlDependentCancer <- List(true, false)
-      cancerIncidenceAgeTLAdjustment <- List(None)
-      maternalInheritance <- List(0.5, 0.65)
+      cancerIncidenceAgeTLAdjustment <- {
+        List(None,
+          Some(CancerIncidenceAgeAdjustment(ageAdjustment = 10, tlAdjustment = 0, "+10y"))
+        )
+      }
+      maternalInheritance <- List(0.575)
       allCauseMortalityForAge <- List(Model.archaicMortality)
       fecundityForAge <- List(Model.archaicFecundity)
-      initialPopulationTL <- 8000 to 15000 by 500
+      initialPopulationTL <- 9000 to 15000 by 1000
     } yield
-      Model.Options(pacEffect = pacEffect, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
+      Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
         tlDependentCancer = tlDependentCancer, cancerIncidenceAgeTLAdjustment = cancerIncidenceAgeTLAdjustment,
         allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
+
+
+    val pw = new PrintWriter(new File("20160817-A.csv"))
+    // PrintWriter
+    // Write CSV header
+    pw.write(s"trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
 
     for {model <- models} yield {
       println(Model.csvHeader)
       println(model)
       //Initialize Random number generator for reproducibility
-      val results = (1 to 50).flatMap(trialNumber => {
+      val results = (1 to 2).flatMap(trialNumber => {
         val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
         Random.setSeed(randomSeed)
         println(s"Trial $trialNumber")
 
-        val runLength = 200
+        val runLength = 300
         val initialPopulation: List[Human] = {
           for {i <- 1 to 1000}
             yield Child(father = Adam(modelOptions = model),
@@ -68,7 +83,7 @@ object Simulator {
         val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, stepSize = 1,
           population = initialPopulation, modelOptions = model)
 
-        val trialResult = (1 to runLength).map(year =>
+        val trialResult = (1 to runLength).map(year => {
           Vector(
             Some(trialNumber),
             Some(year), {
@@ -90,15 +105,14 @@ object Simulator {
             },
             Some(model.toString)
           )
+        }
         )
         trialResult
       }
       )
 
-      // Print results as CSV
-      // Print CSV header
-      println(s"trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}")
-      println({
+      // Write results as CSV
+      pw.write({
         results.map(line =>
           line.head.getOrElse("") +
             line.tail.map(item =>
@@ -108,6 +122,7 @@ object Simulator {
       })
     }
 
+    pw.close
     System.exit(0)
   }
 
