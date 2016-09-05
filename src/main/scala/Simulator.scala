@@ -14,6 +14,18 @@ object Simulator {
 
   @tailrec
   def iterate(startYear: Int, stopYear: Int, stepSize: Int, population: List[Human], modelOptions: Model.Options): List[Human] = {
+
+    if (startYear % 50 == 0)
+      println(startYear)
+    else
+      print("")
+
+    val adjustedModelOptions = modelOptions
+//      if (startYear > 200)
+//      modelOptions.copy(cancerIncidenceAgeTLAdjustment = Some(CancerIncidenceAgeAdjustment(10,0,"+10y")))
+//    else
+//      modelOptions
+
     if (startYear >= stopYear)
       population
     else {
@@ -28,9 +40,9 @@ object Simulator {
 
       val nextGeneration: List[Human] = femalePopulation
         .flatMap(mother => Try(List(Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
-          mother = mother, modelOptions = modelOptions))).getOrElse(Nil))
+          mother = mother, modelOptions = adjustedModelOptions))).getOrElse(Nil))
 
-      iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population, modelOptions)
+      iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population, adjustedModelOptions)
     }
   }
 
@@ -38,7 +50,7 @@ object Simulator {
 
 
     val models = for {
-      pacEffect <- List(false)
+      pacEffect <- List(true, false)
 //      pacAgeCenter <- 29 to 33 by 1 if pacEffect
       pacAgeCenter <- List(31)
       sexEffect <- List(false)
@@ -51,14 +63,14 @@ object Simulator {
       maternalInheritance <- List(0.575)
       allCauseMortalityForAge <- List(Model.archaicMortality)
       fecundityForAge <- List(Model.archaicFecundity)
-      initialPopulationTL <- 9000 to 15000 by 1000
+      initialPopulationTL <- (7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
     } yield
       Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
         tlDependentCancer = tlDependentCancer, cancerIncidenceAgeTLAdjustment = cancerIncidenceAgeTLAdjustment,
         allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
 
 
-    val pw = new PrintWriter(new File("20160817-A.csv"))
+    val pw = new PrintWriter(new File("20160824-A.csv"))
     // PrintWriter
     // Write CSV header
     pw.write(s"trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
@@ -67,7 +79,7 @@ object Simulator {
       println(Model.csvHeader)
       println(model)
       //Initialize Random number generator for reproducibility
-      val results = (1 to 2).flatMap(trialNumber => {
+      val results = (1 to 20).flatMap(trialNumber => {
         val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
         Random.setSeed(randomSeed)
         println(s"Trial $trialNumber")
