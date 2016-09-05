@@ -2,3 +2,5 @@ data/
 project/
 target/
 .idea/
+.ipynb*
+.DS_Store
