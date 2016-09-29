@@ -14,15 +14,15 @@ case object Female extends Sex
 
 
 trait Human {
-  val modelOptions: Model.Options
-  val sex: Sex
-  val birthTL: Int
+  def modelOptions: Model.Options
+  def sex: Sex
+  def birthTL: Int
 
-  val birthYear: Int
+  def birthYear: Int
   assert(birthYear >= 0, "Birth year must be non-negative")
 
-  val deathYear: Int
-  val pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
+  def deathYear: Int
+  def pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
 
   def deathAge: Int = ageForYear(deathYear)
 
