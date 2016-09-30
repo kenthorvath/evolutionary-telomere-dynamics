@@ -21,10 +21,10 @@ object Simulator {
       print("")
 
     val adjustedModelOptions = modelOptions
-//      if (startYear > 200)
-//      modelOptions.copy(cancerIncidenceAgeTLAdjustment = Some(CancerIncidenceAgeAdjustment(10,0,"+10y")))
-//    else
-//      modelOptions
+    //      if (startYear > 200)
+    //      modelOptions.copy(cancerIncidenceAgeTLAdjustment = Some(CancerIncidenceAgeAdjustment(10,0,"+10y")))
+    //    else
+    //      modelOptions
 
     if (startYear >= stopYear)
       population
@@ -49,90 +49,90 @@ object Simulator {
   def main(args: Array[String]) {
 
 
-    val models = for {
-      pacEffect <- List(true, false)
-//      pacAgeCenter <- 29 to 33 by 1 if pacEffect
-      pacAgeCenter <- List(31)
-      sexEffect <- List(false)
-      tlDependentCancer <- List(true, false)
-      cancerIncidenceAgeTLAdjustment <- {
-        List(None,
+    val model = {
+      val pacEffect = args(0).toBoolean
+      val pacAgeCenter = args(1).toInt
+      val sexEffect = args(2).toBoolean
+      val tlDependentCancer = args(3).toBoolean
+      val cancerIncidenceAgeTLAdjustment =
+
+        if (args(4).toBoolean) {
+          None
+        } else {
           Some(CancerIncidenceAgeAdjustment(ageAdjustment = 10, tlAdjustment = 0, "+10y"))
-        )
-      }
-      maternalInheritance <- List(0.575)
-      allCauseMortalityForAge <- List(Model.archaicMortality)
-      fecundityForAge <- List(Model.archaicFecundity)
-      initialPopulationTL <- (7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
-    } yield
+        }
+      val maternalInheritance = args(5).toFloat
+      val allCauseMortalityForAge = Model.archaicMortality
+      val fecundityForAge = Model.archaicFecundity
+      val initialPopulationTL = args(6).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
+
       Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
         tlDependentCancer = tlDependentCancer, cancerIncidenceAgeTLAdjustment = cancerIncidenceAgeTLAdjustment,
         allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
+    }
 
 
-    val pw = new PrintWriter(new File("20160824-A.csv"))
+    val pw = new PrintWriter(new File(args(9)))
     // PrintWriter
     // Write CSV header
     pw.write(s"trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
 
-    for {model <- models} yield {
-      println(Model.csvHeader)
-      println(model)
-      //Initialize Random number generator for reproducibility
-      val results = (1 to 20).flatMap(trialNumber => {
-        val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
-        Random.setSeed(randomSeed)
-        println(s"Trial $trialNumber")
+    println(Model.csvHeader)
+    println(model)
+    //Initialize Random number generator for reproducibility
+    val results = (1 to args(8).toInt).flatMap(trialNumber => {
+      val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
+      Random.setSeed(randomSeed)
+      println(s"Trial $trialNumber")
 
-        val runLength = 300
-        val initialPopulation: List[Human] = {
-          for {i <- 1 to 1000}
-            yield Child(father = Adam(modelOptions = model),
-              mother = Eve(modelOptions = model),
-              birthYear = 1, modelOptions = model)
-        }.toList
+      val runLength = args(7).toInt
+      val initialPopulation: List[Human] = {
+        for {i <- 1 to 1000}
+          yield Child(father = Adam(modelOptions = model),
+            mother = Eve(modelOptions = model),
+            birthYear = 1, modelOptions = model)
+      }.toList
 
-        val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, stepSize = 1,
-          population = initialPopulation, modelOptions = model)
+      val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, stepSize = 1,
+        population = initialPopulation, modelOptions = model)
 
-        val trialResult = (1 to runLength).map(year => {
-          Vector(
-            Some(trialNumber),
-            Some(year), {
-              // average newborn TL
-              val birthByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL)
-              Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
-            },
-            Some(resultPopulation.count(_.birthYear == year)),
-            Some(resultPopulation.count(_.isAliveAtYear(year))), {
-              // average newborn death age
-              val birthByYear = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear)
-              Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
-            }, {
-              val populationSizeLastYear = resultPopulation.count(_.isAliveAtYear(year - 1))
-              val populationSizeThisYear = resultPopulation.count(_.isAliveAtYear(year))
-              val birthsThisYear = resultPopulation.count(_.birthYear == year)
-              val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
-              Some(deathsThisYear)
-            },
-            Some(model.toString)
-          )
-        }
+      val trialResult = (1 to runLength).map(year => {
+        Vector(
+          Some(trialNumber),
+          Some(year), {
+            // average newborn TL
+            val birthByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL)
+            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+          },
+          Some(resultPopulation.count(_.birthYear == year)),
+          Some(resultPopulation.count(_.isAliveAtYear(year))), {
+            // average newborn death age
+            val birthByYear = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear)
+            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+          }, {
+            val populationSizeLastYear = resultPopulation.count(_.isAliveAtYear(year - 1))
+            val populationSizeThisYear = resultPopulation.count(_.isAliveAtYear(year))
+            val birthsThisYear = resultPopulation.count(_.birthYear == year)
+            val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
+            Some(deathsThisYear)
+          },
+          Some(model.toString)
         )
-        trialResult
       }
       )
-
-      // Write results as CSV
-      pw.write({
-        results.map(line =>
-          line.head.getOrElse("") +
-            line.tail.map(item =>
-              s"${item.getOrElse("")}")
-              .foldLeft("")(_ + "," + _))
-          .foldLeft("")(_ + _ + "\n")
-      })
+      trialResult
     }
+    )
+
+    // Write results as CSV
+    pw.write({
+      results.map(line =>
+        line.head.getOrElse("") +
+          line.tail.map(item =>
+            s"${item.getOrElse("")}")
+            .foldLeft("")(_ + "," + _))
+        .foldLeft("")(_ + _ + "\n")
+    })
 
     pw.close
     System.exit(0)
