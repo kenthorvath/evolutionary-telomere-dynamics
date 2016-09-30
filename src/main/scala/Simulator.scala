@@ -38,9 +38,9 @@ object Simulator {
         .filter(_ isAliveAtYear startYear)
         .filter(_ isCapableOfMatingForYear startYear)
 
-      val nextGeneration: List[Human] = femalePopulation
+      val nextGeneration: List[Human] = femalePopulation.par
         .flatMap(mother => Try(List(Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
-          mother = mother, modelOptions = adjustedModelOptions))).getOrElse(Nil))
+          mother = mother, modelOptions = adjustedModelOptions))).getOrElse(Nil)).toList
 
       iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population, adjustedModelOptions)
     }
