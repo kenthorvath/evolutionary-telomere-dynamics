@@ -15,13 +15,17 @@ case object Female extends Sex
 
 trait Human {
   def modelOptions: Model.Options
+
   def sex: Sex
+
   def birthTL: Int
 
   def birthYear: Int
+
   assert(birthYear >= 0, "Birth year must be non-negative")
 
   def deathYear: Int
+
   def pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
 
   def deathAge: Int = ageForYear(deathYear)
@@ -95,7 +99,7 @@ trait Human {
       allAges
         .sorted
         .foldLeft(List[Int]())((acc, age) => if (!acc.contains(age - 1)) age :: acc else acc)
-    Random.shuffle(nonConsecutiveAges).take(5)
+    Random.shuffle(nonConsecutiveAges).take(Random.shuffle(List(4, 5)).head) //4.5-max births
   }
 }
 
