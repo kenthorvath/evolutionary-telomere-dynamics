@@ -27,7 +27,8 @@ object JobGenerator {
     }
 
     for (modelParameters <- models) yield {
-      println(s"scala target/scala-2.11/pac_effect_2.11-1.0.jar $modelParameters model-${Counter.next}.csv")
+      println(s"#!/bin/sh")
+      println(s"scala -cp ../target/scala-2.11/pac_effect_2.11-1.0.jar Simulator $modelParameters ../sbatch-output/model-${Counter.next}.csv")
     }
 
   }
