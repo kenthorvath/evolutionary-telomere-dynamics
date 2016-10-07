@@ -95,7 +95,7 @@ trait Human {
       allAges
         .sorted
         .foldLeft(List[Int]())((acc, age) => if (!acc.contains(age - 1)) age :: acc else acc)
-    nonConsecutiveAges
+    Random.shuffle(nonConsecutiveAges).take(5)
   }
 }
 
