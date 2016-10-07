@@ -5,6 +5,13 @@
 object JobGenerator {
   def main(args: Array[String]): Unit = {
 
+    if (args.length < 2) {
+      throw new Exception("usage: <runLength> <trialCount>")
+    }
+    else {
+      ()
+    }
+
     val models = for {
       pacEffect <- List(true, false)
       pacAgeCenter <- 25 to 35
@@ -13,9 +20,7 @@ object JobGenerator {
       cancerIncidenceAgeTLAdjustment <- List(true, false)
       maternalInheritance <- List(0.575)
       initialPopulationTL <- (7000 to 12000 by 100)
-      runLength <- List(500)
-      trialCount <- List(5)
-    } yield s"$pacEffect $pacAgeCenter $sexEffect $tlDependentCancer $cancerIncidenceAgeTLAdjustment $maternalInheritance $initialPopulationTL $runLength $trialCount"
+    } yield s"$pacEffect $pacAgeCenter $sexEffect $tlDependentCancer $cancerIncidenceAgeTLAdjustment $maternalInheritance $initialPopulationTL ${args(0)} ${args(1)}"
 
     object Counter {
       var x: Int = 0
