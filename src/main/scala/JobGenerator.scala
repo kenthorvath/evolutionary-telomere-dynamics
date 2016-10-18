@@ -17,10 +17,10 @@ object JobGenerator {
       pacAgeCenter <- 25 to 35
       sexEffect <- List(false)
       tlDependentCancer <- List(true, false)
-      cancerIncidenceAgeTLAdjustment <- List(true, false)
+      cancerIncidenceAdjustment <- List(true, false)
       maternalInheritance <- List(0.575)
       initialPopulationTL <- (7000 to 8000 by 1000) ++ (9000 to 11000 by 250) ++ (12000 to 13000 by 1000)
-    } yield s"$pacEffect $pacAgeCenter $sexEffect $tlDependentCancer $cancerIncidenceAgeTLAdjustment $maternalInheritance $initialPopulationTL ${args(0)} ${args(1)}"
+    } yield s"$pacEffect $pacAgeCenter $sexEffect $tlDependentCancer $cancerIncidenceAdjustment $maternalInheritance $initialPopulationTL ${args(0)} ${args(1)}"
 
     object Counter {
       var x: Int = 0

@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 import scala.util.{Random, Try}
 import java.io._
 
-import com.github.kenthorvath.telomere.Model.CancerIncidenceAgeAdjustment
+import com.github.kenthorvath.telomere.Model.CancerIncidenceAdjustment
 
 object Simulator {
 
@@ -22,7 +22,7 @@ object Simulator {
 
     val adjustedModelOptions = modelOptions
     //      if (startYear > 200)
-    //      modelOptions.copy(cancerIncidenceAgeTLAdjustment = Some(CancerIncidenceAgeAdjustment(10,0,"+10y")))
+    //      modelOptions.copy(cancerIncidenceAdjustment = Some(CancerIncidenceAdjustment(10,0,"+10y")))
     //    else
     //      modelOptions
 
@@ -57,9 +57,9 @@ object Simulator {
       val cancerIncidenceAgeTLAdjustment =
 
         if (args(4).toBoolean) {
-          None
+          CancerIncidenceAdjustment(increasedIncidence = false, "(-)")
         } else {
-          Some(CancerIncidenceAgeAdjustment(ageAdjustment = 10, tlAdjustment = 0, "+10y"))
+          CancerIncidenceAdjustment(increasedIncidence = true, "(+)")
         }
       val maternalInheritance = args(5).toFloat
       val allCauseMortalityForAge = Model.archaicMortality
@@ -67,7 +67,7 @@ object Simulator {
       val initialPopulationTL = args(6).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
 
       Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
-        tlDependentCancer = tlDependentCancer, cancerIncidenceAgeTLAdjustment = cancerIncidenceAgeTLAdjustment,
+        tlDependentCancer = tlDependentCancer, cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment,
         allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
     }
 

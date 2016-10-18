@@ -1,5 +1,7 @@
 package com.github.kenthorvath.telomere
 
+import com.github.kenthorvath.telomere.Model.CancerIncidenceAdjustment
+
 import scala.util.Random
 
 /**
@@ -56,16 +58,18 @@ trait Human {
     def cancerIncidenceAfter20(age: Int): Double = {
       val c: Map[Sex, Int] = Map(Male -> 311, Female -> 178)
       val h: Map[Sex, Double] = Map(Male -> 5.50, Female -> 4.44)
-      val r: Map[Sex, Double] = Map(Male -> 0.090, Female -> 0.063)
+      val r: Map[Sex, Double] = modelOptions.cancerIncidenceAdjustment match {
+        case CancerIncidenceAdjustment(true, _) => Map(Male -> 0.113, Female -> 0.085)
+        case CancerIncidenceAdjustment(false, _)  => Map(Male -> 0.090, Female -> 0.063)
+      }
       val p2: Map[Sex, Double] = Map(Male -> 1.0e-9, Female -> 6.0e-9)
       val mcs20: Double = 1.0e8
       val tlCritical: Double = 6.5
-      val tl20: Double = (LTLForYear(birthYear + 20).toFloat +
-        modelOptions.cancerIncidenceAgeTLAdjustment.map(_.tlAdjustment).getOrElse(0)) / 1000
+      val tl20: Double = LTLForYear(birthYear + 20).toFloat / 1000
       assert(tl20 > 0, "LTL20 parameter cannot be negative for cancer incidence")
       val q: Double = 0.025
       val dTL = tl20 - tlCritical
-      val ageAfter20 = age - 20 + modelOptions.cancerIncidenceAgeTLAdjustment.map(_.ageAdjustment).getOrElse(0)
+      val ageAfter20 = age - 20
       val incidencePer100K: Double =
         c(sex) * (mcs20 / (1 + math.exp(-h(sex) * (dTL - q * ageAfter20)))) * p2(sex) * math.exp(r(sex) * ageAfter20)
       incidencePer100K / 100e3

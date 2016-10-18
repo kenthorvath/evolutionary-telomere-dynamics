@@ -52,7 +52,7 @@ object Model {
 
   val archaicFecundity = FecundityModel(baseProbabilityOfPregnancy _, "Archaic")
 
-  case class CancerIncidenceAgeAdjustment(ageAdjustment: Int = 0, tlAdjustment: Int = 0, description: String) {
+  case class CancerIncidenceAdjustment(increasedIncidence: Boolean, description: String) {
     override def toString = description
   }
 
@@ -69,7 +69,7 @@ object Model {
   }
 
   case class Options(pacEffect: Boolean, pacAgeCenter: Int, sexEffect: Boolean, maternalInheritance: Double,
-                     tlDependentCancer: Boolean, cancerIncidenceAgeTLAdjustment: Option[CancerIncidenceAgeAdjustment] = None,
+                     tlDependentCancer: Boolean, cancerIncidenceAdjustment: CancerIncidenceAdjustment,
                      allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
     assert(maternalInheritance >= 0.0 && maternalInheritance <= 1.0, "Maternal contribution must be between 0 and 1")
     assert(initialPopulationTL > 0, "Telomere length must be greater than zero")
@@ -81,7 +81,7 @@ object Model {
         s"${withOrWithoutIndicator(pacEffect)}," +
         s"$pacAgeCenter," +
         s"${withOrWithoutIndicator(tlDependentCancer)}," +
-        s"${cancerIncidenceAgeTLAdjustment.getOrElse("None")}," +
+        s"$cancerIncidenceAdjustment," +
         s"$maternalInheritance," +
         s"$fecundityForAge," +
         s"$allCauseMortalityForAge," +
