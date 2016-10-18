@@ -82,9 +82,16 @@ trait Human {
 
   }
 
+  def brinkDeathProbability(telomereLength: Int): Double = {
+    val telomereLengthInKB = telomereLength.toDouble / 1000
+    val kConstant = 3
+    val brinkConstantInKB = 4
+    1.0 / (1 + math.exp(kConstant*(telomereLengthInKB - brinkConstantInKB)))
+  }
+
   def predictDeathYear(modelOptions: Model.Options): Int = {
     // This should always return a value because baseProbabilityOfDeath defaults to 1.00
-    val deathAgeFromBrink: Int = Stream.from(1).find(age => LTLForYear(birthYear + age) <= 5500).get
+    val deathAgeFromBrink: Int = Stream.from(1).find(age => Random.nextFloat() <= brinkDeathProbability(LTLForYear(birthYear + age))).get
     val deathAgeFromCancer: Option[Int] = modelOptions.tlDependentCancer match {
       case true => (1 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age, modelOptions))
       case false => None
