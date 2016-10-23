@@ -39,8 +39,11 @@ trait Human {
       case n if n <= 20 => birthTL - 70 * n
       case n => birthTL - (70 * 20) - (25 * (n - 20))
     }
-    assert(result >= 0, "LTL cannot be negative")
-    result
+
+    result match {
+      case n if n > 0 => n
+      case _ => 0
+    }
   }
 
   def hasChildAtYear(year: Int): Boolean = {
