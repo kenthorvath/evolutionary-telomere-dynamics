@@ -62,8 +62,8 @@ object Simulator {
           CancerIncidenceAdjustment(increasedIncidence = true, "(+)")
         }
       val maternalInheritance = args(5).toFloat
-      val allCauseMortalityForAge = Model.archaicMortality
-      val fecundityForAge = Model.archaicFecundity
+      val allCauseMortalityForAge = Model.mortality
+      val fecundityForAge = Model.fecundity
       val initialPopulationTL = args(6).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
 
       Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
