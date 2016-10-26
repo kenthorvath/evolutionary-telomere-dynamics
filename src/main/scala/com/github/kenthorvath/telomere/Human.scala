@@ -110,7 +110,7 @@ trait Human {
       allAges
         .sorted
         .foldLeft(List[Int]())((acc, age) => if (!acc.contains(age - 1)) age :: acc else acc)
-    Random.shuffle(nonConsecutiveAges).take(Random.shuffle(List(3, 4)).head) //4.5-max births
+    Random.shuffle(nonConsecutiveAges).take(3) //4.5-max births
   }
 }
 
