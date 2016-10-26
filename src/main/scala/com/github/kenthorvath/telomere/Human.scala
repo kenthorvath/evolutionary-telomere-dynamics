@@ -60,7 +60,7 @@ trait Human {
       val h: Map[Sex, Double] = Map(Male -> 5.50, Female -> 4.44)
       val r: Map[Sex, Double] = modelOptions.cancerIncidenceAdjustment match {
         case CancerIncidenceAdjustment(true, _) => Map(Male -> 0.113, Female -> 0.085)
-        case CancerIncidenceAdjustment(false, _)  => Map(Male -> 0.090, Female -> 0.063)
+        case CancerIncidenceAdjustment(false, _) => Map(Male -> 0.090, Female -> 0.063)
       }
       val p2: Map[Sex, Double] = Map(Male -> 1.0e-9, Female -> 6.0e-9)
       val mcs20: Double = 1.0e8
@@ -86,7 +86,7 @@ trait Human {
     val telomereLengthInKB = telomereLength.toDouble / 1000
     val kConstant = 3
     val brinkConstantInKB = 4
-    1.0 / (1 + math.exp(kConstant*(telomereLengthInKB - brinkConstantInKB)))
+    1.0 / (1 + math.exp(kConstant * (telomereLengthInKB - brinkConstantInKB)))
   }
 
   def predictDeathYear(modelOptions: Model.Options): Int = {
@@ -110,7 +110,7 @@ trait Human {
       allAges
         .sorted
         .foldLeft(List[Int]())((acc, age) => if (!acc.contains(age - 1)) age :: acc else acc)
-    Random.shuffle(nonConsecutiveAges).take(Random.shuffle(List(2, 3)).head) //4.5-max births
+    Random.shuffle(nonConsecutiveAges).take(Random.shuffle(List(3, 4)).head) //4.5-max births
   }
 }
 
