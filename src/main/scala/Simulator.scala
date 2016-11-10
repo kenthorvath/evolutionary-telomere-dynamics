@@ -51,7 +51,7 @@ object Simulator {
 
     val model = {
       val pacEffect = args(0).toBoolean
-      val pacAgeCenter = args(1).toInt
+      val pacAgeCenter = args(1).toDouble
       val sexEffect = args(2).toBoolean
       val tlDependentCancer = args(3).toBoolean
       val cancerIncidenceAgeTLAdjustment =
