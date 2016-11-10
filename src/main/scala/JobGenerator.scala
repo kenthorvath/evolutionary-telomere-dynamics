@@ -14,7 +14,7 @@ object JobGenerator {
 
     val models = for {
       pacEffect <- List(true, false)
-      pacAgeCenter <- 25 to 35
+      pacAgeCenter <- 34.1 until 35.0 by 0.1
       sexEffect <- List(false)
       tlDependentCancer <- List(true, false)
       cancerIncidenceAdjustment <- List(true, false)

@@ -127,7 +127,7 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
   val sexEffect: Int = if (sex == Female) 150 else 0
   val pacEffect: Int = father match {
     case Adam(_) => 0
-    case _ => -15 * (modelOptions.pacAgeCenter - father.ageForYear(birthYear))
+    case _ => (-15 * (modelOptions.pacAgeCenter - father.ageForYear(birthYear))).toInt
   }
 
   val birthTL: Int = baseTL + stochasticEffect +

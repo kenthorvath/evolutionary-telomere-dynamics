@@ -75,7 +75,7 @@ object Model {
       s"Initial Population TL"
   }
 
-  case class Options(pacEffect: Boolean, pacAgeCenter: Int, sexEffect: Boolean, maternalInheritance: Double,
+  case class Options(pacEffect: Boolean, pacAgeCenter: Double, sexEffect: Boolean, maternalInheritance: Double,
                      tlDependentCancer: Boolean, cancerIncidenceAdjustment: CancerIncidenceAdjustment,
                      allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
     assert(maternalInheritance >= 0.0 && maternalInheritance <= 1.0, "Maternal contribution must be between 0 and 1")
