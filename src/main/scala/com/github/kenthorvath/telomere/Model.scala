@@ -59,8 +59,8 @@ object Model {
 
   val fecundity = FecundityModel(baseProbabilityOfPregnancy _, "Modern")
 
-  case class CancerIncidenceAdjustment(increasedIncidence: Boolean, description: String) {
-    override def toString = description
+  case class CancerIncidenceAdjustment(increasedIncidence: Double) {
+    override def toString = increasedIncidence.toString
   }
 
   def csvHeader: String = {

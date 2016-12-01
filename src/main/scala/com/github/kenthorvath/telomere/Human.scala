@@ -55,13 +55,14 @@ trait Human {
   def isAliveAtYear(year: Int): Boolean = (year >= birthYear) && (year < deathYear)
 
   def baseProbabilityOfCancer(age: Int, modelOptions: Model.Options): Double = {
+    val scalingFactor =  modelOptions.cancerIncidenceAdjustment match {
+      case CancerIncidenceAdjustment(true, _) => 8.0
+      case CancerIncidenceAdjustment(false, _) => 1.0
+    }
     def cancerIncidenceAfter20(age: Int): Double = {
       val c: Map[Sex, Int] = Map(Male -> 311, Female -> 178)
       val h: Map[Sex, Double] = Map(Male -> 5.50, Female -> 4.44)
-      val r: Map[Sex, Double] = modelOptions.cancerIncidenceAdjustment match {
-        case CancerIncidenceAdjustment(true, _) => Map(Male -> 0.113, Female -> 0.085)
-        case CancerIncidenceAdjustment(false, _) => Map(Male -> 0.090, Female -> 0.063)
-      }
+      val r: Map[Sex, Double] = Map(Male -> 0.090, Female -> 0.063)
       val p2: Map[Sex, Double] = Map(Male -> 1.0e-9, Female -> 6.0e-9)
       val mcs20: Double = 1.0e8
       val tlCritical: Double = 6.5
@@ -75,11 +76,12 @@ trait Human {
       incidencePer100K / 100e3
     }
 
-    age match {
+    val result = age match {
       case n if n <= 20 => 0.0
       case n if n > 20 => cancerIncidenceAfter20(age = n)
     }
 
+    result * scalingFactor
   }
 
   def brinkDeathProbability(telomereLength: Int): Double = {

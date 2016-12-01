@@ -54,13 +54,10 @@ object Simulator {
       val pacAgeCenter = args(1).toDouble
       val sexEffect = args(2).toBoolean
       val tlDependentCancer = args(3).toBoolean
-      val cancerIncidenceAgeTLAdjustment =
 
-        if (args(4).toBoolean) {
-          CancerIncidenceAdjustment(increasedIncidence = false, "(-)")
-        } else {
-          CancerIncidenceAdjustment(increasedIncidence = true, "(+)")
-        }
+      val cancerIncidenceScalingFactor = args(4).toDouble
+      val cancerIncidenceAgeTLAdjustment = CancerIncidenceAdjustment(increasedIncidence = cancerIncidenceScalingFactor)
+
       val maternalInheritance = args(5).toFloat
       val allCauseMortalityForAge = Model.mortality
       val fecundityForAge = Model.fecundity
