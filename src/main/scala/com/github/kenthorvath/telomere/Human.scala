@@ -56,9 +56,9 @@ trait Human {
 
   def baseProbabilityOfCancer(age: Int, modelOptions: Model.Options): Double = {
     val scalingFactor =  modelOptions.cancerIncidenceAdjustment match {
-      case CancerIncidenceAdjustment(true, _) => 8.0
-      case CancerIncidenceAdjustment(false, _) => 1.0
+      case CancerIncidenceAdjustment(n) => n
     }
+
     def cancerIncidenceAfter20(age: Int): Double = {
       val c: Map[Sex, Int] = Map(Male -> 311, Female -> 178)
       val h: Map[Sex, Double] = Map(Male -> 5.50, Female -> 4.44)
