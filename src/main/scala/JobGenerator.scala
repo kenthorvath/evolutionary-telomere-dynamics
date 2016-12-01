@@ -36,7 +36,7 @@ object JobGenerator {
       println(s"#!/bin/sh")
       println(s"scala -cp ../target/scala-2.11/pac_effect_2.11-1.0.jar Simulator $modelParameters ../sbatch-output/model-${counter}.csv &&")
       println(s"aws s3 cp ../sbatch-output/model-${counter}.csv s3://telomere-dynamics/modern-humans-cancer-scaling/")
-      println(s"rm ../sbatch-output/model-${counter}.csv")
+      println(s"rm -f ../sbatch-output/model-${counter}.csv")
     }
 
   }
