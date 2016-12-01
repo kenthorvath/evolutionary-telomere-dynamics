@@ -14,7 +14,7 @@ object JobGenerator {
 
     val models = for {
       pacEffect <- List(true, false)
-      pacAgeCenter <- ((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).toSet
+      pacAgeCenter: Double <- ((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).toSet
       sexEffect <- List(false)
       tlDependentCancer <- List(true, false)
       cancerIncidenceAdjustment <- (0 to 4) map (math.pow(2, _))
