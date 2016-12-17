@@ -21,10 +21,6 @@ object Simulator {
       print("")
 
     val adjustedModelOptions = modelOptions
-    //      if (startYear > 200)
-    //      modelOptions.copy(cancerIncidenceAdjustment = Some(CancerIncidenceAdjustment(10,0,"+10y")))
-    //    else
-    //      modelOptions
 
     if (startYear >= stopYear)
       population
