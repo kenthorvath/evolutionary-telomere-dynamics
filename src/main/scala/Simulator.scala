@@ -8,19 +8,17 @@ import scala.annotation.tailrec
 import scala.util.{Random, Try}
 import java.io._
 
-import com.github.kenthorvath.telomere.Model.CancerIncidenceAdjustment
+import com.github.kenthorvath.telomere.Model.{CancerIncidenceAdjustment, Options}
 
 object Simulator {
 
   @tailrec
-  def iterate(startYear: Int, stopYear: Int, stepSize: Int, population: List[Human], modelOptions: Model.Options): List[Human] = {
+  def iterate(startYear: Int, stopYear: Int, population: List[Human], modelOptions: Options): List[Human] = {
 
     if (startYear % 50 == 0)
       println(startYear)
     else
       print("")
-
-    val adjustedModelOptions = modelOptions
 
     if (startYear >= stopYear)
       population
@@ -36,9 +34,9 @@ object Simulator {
 
       val nextGeneration: List[Human] = femalePopulation.par
         .flatMap(mother => Try(List(Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
-          mother = mother, modelOptions = adjustedModelOptions))).getOrElse(Nil)).toList
+          mother = mother, modelOptions = modelOptions))).getOrElse(Nil)).toList
 
-      iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population, adjustedModelOptions)
+      iterate(startYear + 1, stopYear, population = nextGeneration union population, modelOptions)
     }
   }
 
@@ -86,8 +84,7 @@ object Simulator {
             birthYear = 1, modelOptions = model)
       }.toList
 
-      val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, stepSize = 1,
-        population = initialPopulation, modelOptions = model)
+      val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, population = initialPopulation, modelOptions = model)
 
       val trialResult = (1 to runLength).map(year => {
         Vector(
