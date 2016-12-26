@@ -55,7 +55,7 @@ trait Human {
   def isAliveAtYear(year: Int): Boolean = (year >= birthYear) && (year < deathYear)
 
   def baseProbabilityOfCancer(age: Int, modelOptions: Model.Options): Double = {
-    val scalingFactor =  modelOptions.cancerIncidenceAdjustment match {
+    val scalingFactor = modelOptions.cancerIncidenceAdjustment match {
       case CancerIncidenceAdjustment(n) => n
     }
 
@@ -107,12 +107,19 @@ trait Human {
   }
 
   def predictPregnancyAges(modelOptions: Model.Options): List[Int] = {
+
+    def intFromExpectation(expectationValue: Double): Int = {
+      // return one of two consecutive integers, given an expectation value
+      val residual = expectationValue - expectationValue.floor
+      if (Random.nextDouble() <= 1 - residual) expectationValue.floor.toInt else expectationValue.ceil.toInt
+    }
+
     val allAges = (0 until deathAge).filter(age => Random.nextFloat() <= modelOptions.fecundityForAge.f(age)).toList
     val nonConsecutiveAges: List[Int] =
       allAges
         .sorted
         .foldLeft(List[Int]())((acc, age) => if (!acc.contains(age - 1)) age :: acc else acc)
-    Random.shuffle(nonConsecutiveAges).take(3) //4.5-max births
+    Random.shuffle(nonConsecutiveAges).take(intFromExpectation(3)) // Max births hack
   }
 }
 
