@@ -1,6 +1,6 @@
 package com.github.kenthorvath.telomere
 
-import com.github.kenthorvath.telomere.Model.CancerIncidenceAdjustment
+import com.github.kenthorvath.telomere.Model.{CancerIncidenceAdjustment, birthYearOffset}
 
 import scala.util.Random
 
@@ -23,8 +23,6 @@ trait Human {
   def birthTL: Int
 
   def birthYear: Int
-
-  assert(birthYear >= 0, "Birth year must be non-negative")
 
   def deathYear: Int
 
@@ -144,7 +142,7 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
     (if (modelOptions.pacEffect) pacEffect else 0)
 
 
-  val deathYear = predictDeathYear(modelOptions)
+  val deathYear: Int = predictDeathYear(modelOptions)
 
   override def ageForYear(year: Int): Int = year - birthYear
 
@@ -153,14 +151,14 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
 
 case class Adam(modelOptions: Model.Options) extends Human {
   override val sex = Male
-  val birthYear = 0
-  val birthTL = modelOptions.initialPopulationTL
-  val deathYear = birthYear
+  val birthYear: Int = 0 - birthYearOffset(modelOptions.fecundityForAge)
+  val birthTL: Int = modelOptions.initialPopulationTL
+  val deathYear: Int = birthYear
 }
 
 case class Eve(modelOptions: Model.Options) extends Human {
   override val sex = Female
-  val birthYear = 0
-  val birthTL = modelOptions.initialPopulationTL
-  val deathYear = birthYear
+  val birthYear: Int = 0 - birthYearOffset(modelOptions.fecundityForAge)
+  val birthTL: Int = modelOptions.initialPopulationTL
+  val deathYear: Int = birthYear
 }
