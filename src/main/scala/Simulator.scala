@@ -77,12 +77,18 @@ object Simulator {
       println(s"Trial $trialNumber")
 
       val runLength = args(6).toInt
-      val initialPopulation: List[Human] = {
-        for {i <- 1 to 1000}
-          yield Child(father = Adam(modelOptions = model),
-            mother = Eve(modelOptions = model),
-            birthYear = 1, modelOptions = model)
-      }.toList
+
+      val seedPopulation: List[Human] = {
+        for {
+          i <- 1 to 100
+          year <- -100 to 0
+        }
+          yield Child(father = MaleFounder(modelOptions = model),
+            mother = FemaleFounder(modelOptions = model),
+            birthYear = year, modelOptions = model)
+      }.toList.filter(_.isAliveAtYear(0))
+
+      val initialPopulation: List[Human] = Random.shuffle(seedPopulation).take(1000)
 
       val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, population = initialPopulation, modelOptions = model)
 

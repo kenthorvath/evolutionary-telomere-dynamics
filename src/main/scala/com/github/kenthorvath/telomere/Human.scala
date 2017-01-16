@@ -131,7 +131,11 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
   val baseTL: Int = ((1.0 - modelOptions.maternalInheritance) * father.birthTL +
     modelOptions.maternalInheritance * mother.birthTL).round.toInt
   val stochasticEffect: Int = math.round(Random.nextGaussian() * tlStandardDeviation).toInt
-  val pacEffect: Int = (-15 * (modelOptions.pacAgeCenter - father.ageForYear(birthYear))).toInt
+
+  val pacEffect: Int = father match {
+    case MaleFounder(_) => 0
+    case _ => (-15 * (modelOptions.pacAgeCenter - father.ageForYear(birthYear))).toInt
+  }
 
   val birthTL: Int = baseTL + stochasticEffect +
     (if (modelOptions.pacEffect) pacEffect else 0)
@@ -143,14 +147,14 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
   override val pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
 }
 
-case class Adam(modelOptions: Model.Options) extends Human {
+case class MaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Male
   val birthYear: Int = 0 - birthYearOffset(modelOptions.fecundityForAge)
   val birthTL: Int = modelOptions.initialPopulationTL
   val deathYear: Int = birthYear
 }
 
-case class Eve(modelOptions: Model.Options) extends Human {
+case class FemaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Female
   val birthYear: Int = 0 - birthYearOffset(modelOptions.fecundityForAge)
   val birthTL: Int = modelOptions.initialPopulationTL
