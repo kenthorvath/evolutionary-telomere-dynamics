@@ -87,8 +87,7 @@ object Model {
   }
 
   def csvHeader: String = {
-    s"sexEffect," +
-      s"pacEffect," +
+    s"pacEffect," +
       s"pacAgeCenter," +
       s"tlDependentCA," +
       s"CA Risk Adjustment," +
@@ -98,9 +97,7 @@ object Model {
       s"Initial Population TL"
   }
 
-  case class Options(pacEffect: Boolean, pacAgeCenter: Double, sexEffect: Boolean, maternalInheritance: Double,
-                     tlDependentCancer: Boolean, cancerIncidenceAdjustment: CancerIncidenceAdjustment,
-                     allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
+  case class Options(pacEffect: Boolean, pacAgeCenter: Double, maternalInheritance: Double, tlDependentCancer: Boolean, cancerIncidenceAdjustment: CancerIncidenceAdjustment, allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
     assert(maternalInheritance >= 0.0 && maternalInheritance <= 1.0, "Maternal contribution must be between 0 and 1")
     assert(initialPopulationTL > 0, "Telomere length must be greater than zero")
 
@@ -108,8 +105,7 @@ object Model {
     override def toString: String = {
       def withOrWithoutIndicator(x: Boolean): String = if (x) "(+)" else "(-)"
 
-      s"${withOrWithoutIndicator(sexEffect)}," +
-        s"${withOrWithoutIndicator(pacEffect)}," +
+      s"${withOrWithoutIndicator(pacEffect)}," +
         s"$pacAgeCenter," +
         s"${withOrWithoutIndicator(tlDependentCancer)}," +
         s"$cancerIncidenceAdjustment," +

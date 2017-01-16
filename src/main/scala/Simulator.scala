@@ -8,6 +8,9 @@ import scala.annotation.tailrec
 import scala.util.{Random, Try}
 import java.io._
 
+import breeze.linalg._
+import breeze.stats._
+
 import com.github.kenthorvath.telomere.Model.{CancerIncidenceAdjustment, Options}
 
 object Simulator {
@@ -46,37 +49,34 @@ object Simulator {
     val model = {
       val pacEffect = args(0).toBoolean
       val pacAgeCenter = args(1).toDouble
-      val sexEffect = args(2).toBoolean
-      val tlDependentCancer = args(3).toBoolean
+      val tlDependentCancer = args(2).toBoolean
 
-      val cancerIncidenceScalingFactor = args(4).toDouble
+      val cancerIncidenceScalingFactor = args(3).toDouble
       val cancerIncidenceAgeTLAdjustment = CancerIncidenceAdjustment(increasedIncidence = cancerIncidenceScalingFactor)
 
-      val maternalInheritance = args(5).toFloat
+      val maternalInheritance = args(4).toFloat
       val allCauseMortalityForAge = Model.mortality
       val fecundityForAge = Model.fecundity
-      val initialPopulationTL = args(6).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
+      val initialPopulationTL = args(5).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
 
-      Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
-        tlDependentCancer = tlDependentCancer, cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment,
-        allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
+      Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, maternalInheritance = maternalInheritance, tlDependentCancer = tlDependentCancer, cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment, allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
     }
 
 
-    val pw = new PrintWriter(new File(args(9)))
+    val pw = new PrintWriter(new File(args(8)))
     // PrintWriter
     // Write CSV header
-    pw.write(s"trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
+    pw.write(s"trialNumber,year,avgNewbornTL,stddevNewbornTL,Q1NewbornTL,Q2NewbornTL,Q3NewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
 
     println(Model.csvHeader)
     println(model)
     //Initialize Random number generator for reproducibility
-    val results = (1 to args(8).toInt).flatMap(trialNumber => {
+    val results = (1 to args(7).toInt).flatMap(trialNumber => {
       val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
       Random.setSeed(randomSeed)
       println(s"Trial $trialNumber")
 
-      val runLength = args(7).toInt
+      val runLength = args(6).toInt
       val initialPopulation: List[Human] = {
         for {i <- 1 to 1000}
           yield Child(father = Adam(modelOptions = model),
@@ -87,18 +87,31 @@ object Simulator {
       val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, population = initialPopulation, modelOptions = model)
 
       val trialResult = (1 to runLength).map(year => {
-        Vector(
+        val newbornTLByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL.toDouble).toArray
+
+        val result: Vector[Option[Any]] = Vector(
           Some(trialNumber),
           Some(year), {
-            // average newborn TL
-            val birthByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL)
-            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+            // mean newborn TL
+            Try(Some(mean(newbornTLByYear))).getOrElse(None)
+          }, {
+            // std newborn TL
+            Try(Some(stddev(newbornTLByYear))).getOrElse(None)
+          }, {
+            // Q1 newborn TL
+            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.25))).getOrElse(None)
+          }, {
+            // Q2 newborn TL
+            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.5))).getOrElse(None)
+          }, {
+            // Q3 newborn TL
+            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.75))).getOrElse(None)
           },
           Some(resultPopulation.count(_.birthYear == year)),
           Some(resultPopulation.count(_.isAliveAtYear(year))), {
             // average newborn death age
-            val birthByYear = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear)
-            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+            val deathAges = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear).toArray
+            Try(Some(mean(deathAges))).getOrElse(None)
           }, {
             val populationSizeLastYear = resultPopulation.count(_.isAliveAtYear(year - 1))
             val populationSizeThisYear = resultPopulation.count(_.isAliveAtYear(year))
@@ -108,6 +121,7 @@ object Simulator {
           },
           Some(model.toString)
         )
+        result.toArray
       }
       )
       trialResult
@@ -124,7 +138,7 @@ object Simulator {
         .foldLeft("")(_ + _ + "\n")
     })
 
-    pw.close
+    pw.close()
     System.exit(0)
   }
 

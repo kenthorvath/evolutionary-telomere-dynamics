@@ -1,5 +1,4 @@
 data/
-project/
 target/
 .idea/
 *.sc
