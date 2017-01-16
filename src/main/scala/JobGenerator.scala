@@ -13,13 +13,14 @@ object JobGenerator {
     }
 
     val models = for {
-      pacEffect <- List(true, false)
-      pacAgeCenter: Double <- ((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).toSet
-      tlDependentCancer <- List(true, false)
-      cancerIncidenceAdjustment <- (0 to 4) map (math.pow(2, _))
+      pacEffect <- List(false) // List(true, false)
+      pacAgeCenter: Double <- List(30.0).toSet //((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).toSet
+      brinkEffect <- List(false)
+      tlDependentCancer <- List(false) // List(true, false)
+      cancerIncidenceAdjustment <- List(0) // (0 to 4) map (math.pow(2, _))
       maternalInheritance <- List(0.575)
-      initialPopulationTL <- (7000 to 8000 by 1000) ++ (9000 to 11000 by 250) ++ (12000 to 13000 by 1000)
-    } yield s"$pacEffect $pacAgeCenter $tlDependentCancer $cancerIncidenceAdjustment $maternalInheritance $initialPopulationTL ${args(0)} ${args(1)}"
+      initialPopulationTL <- List(5000, 9500, 14000)
+    } yield s"$pacEffect $pacAgeCenter $brinkEffect $tlDependentCancer $cancerIncidenceAdjustment $maternalInheritance $initialPopulationTL ${args(0)} ${args(1)}"
 
     object Counter {
       var x: Int = 0

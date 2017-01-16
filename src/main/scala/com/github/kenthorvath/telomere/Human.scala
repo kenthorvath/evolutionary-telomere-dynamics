@@ -37,7 +37,6 @@ trait Human {
       case n if n <= 20 => birthTL - 70 * n
       case n => birthTL - (70 * 20) - (25 * (n - 20))
     }
-    assert(result >= 0, "LTL cannot be negative")
     result
   }
 
@@ -91,12 +90,22 @@ trait Human {
 
   def predictDeathYear(modelOptions: Model.Options): Int = {
     // This should always return a value because baseProbabilityOfDeath defaults to 1.00
-    val deathAgeFromBrink: Int = Stream.from(1).find(age => Random.nextFloat() <= brinkDeathProbability(LTLForYear(birthYear + age))).get
+    val deathAgeFromBrink: Int = modelOptions.brinkEffect match {
+      case true => Stream.from(1).find(age => Random.nextFloat() <= brinkDeathProbability(LTLForYear(birthYear + age))).get
+      case false => Stream.from(1).find(age => LTLForYear(birthYear + (age + 1)) <= 0).get
+    }
+
+
     val deathAgeFromCancer: Option[Int] = modelOptions.tlDependentCancer match {
       case true => (1 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age, modelOptions))
       case false => None
     }
     val deathAgeWithoutCancer: Int = Stream.from(0).find(age => Random.nextFloat() <= modelOptions.allCauseMortalityForAge.f(age)).get
+
+    if (deathAgeWithoutCancer > deathAgeFromBrink)
+      println(s"deathAgeFromBrink = $deathAgeFromBrink, deathAgeFromCancer = $deathAgeFromCancer, deathAgeWithoutCancer = $deathAgeWithoutCancer")
+    else
+      ()
 
     birthYear + List(
       deathAgeFromBrink,
@@ -145,11 +154,14 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
   override def ageForYear(year: Int): Int = year - birthYear
 
   override val pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
+
+  assert(LTLForYear(deathYear) >= 0, s"LTL=${LTLForYear(deathYear)} at age=${ageForYear(deathYear)}, birth=$birthYear, death=$deathYear -> cannot be negative during life course")
 }
 
 case class MaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Male
-  val birthYear: Int = -1000 // Bad hack to ensure children are always born after the founders
+  val birthYear: Int = -1000
+  // Bad hack to ensure children are always born after the founders
   // (requires seedPopulation to be generated sometime after year -1000)
   val birthTL: Int = modelOptions.initialPopulationTL
   val deathYear: Int = birthYear
@@ -157,7 +169,8 @@ case class MaleFounder(modelOptions: Model.Options) extends Human {
 
 case class FemaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Female
-  val birthYear: Int = -1000 // Bad hack as above
+  val birthYear: Int = -1000
+  // Bad hack as above
   val birthTL: Int = modelOptions.initialPopulationTL
   val deathYear: Int = birthYear
 }

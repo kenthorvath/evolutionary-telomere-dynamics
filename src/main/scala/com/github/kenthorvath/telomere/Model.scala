@@ -68,6 +68,7 @@ object Model {
   def csvHeader: String = {
     s"pacEffect," +
       s"pacAgeCenter," +
+      s"brinkEffect," +
       s"tlDependentCA," +
       s"CA Risk Adjustment," +
       s"Maternal Inheritance," +
@@ -76,7 +77,7 @@ object Model {
       s"Initial Population TL"
   }
 
-  case class Options(pacEffect: Boolean, pacAgeCenter: Double, maternalInheritance: Double, tlDependentCancer: Boolean, cancerIncidenceAdjustment: CancerIncidenceAdjustment, allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
+  case class Options(pacEffect: Boolean, pacAgeCenter: Double, maternalInheritance: Double, brinkEffect: Boolean, tlDependentCancer: Boolean, cancerIncidenceAdjustment: CancerIncidenceAdjustment, allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
     assert(maternalInheritance >= 0.0 && maternalInheritance <= 1.0, "Maternal contribution must be between 0 and 1")
     assert(initialPopulationTL > 0, "Telomere length must be greater than zero")
 
@@ -86,6 +87,7 @@ object Model {
 
       s"${withOrWithoutIndicator(pacEffect)}," +
         s"$pacAgeCenter," +
+        s"${withOrWithoutIndicator(brinkEffect)}," +
         s"${withOrWithoutIndicator(tlDependentCancer)}," +
         s"$cancerIncidenceAdjustment," +
         s"$maternalInheritance," +
