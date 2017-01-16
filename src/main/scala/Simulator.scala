@@ -116,7 +116,7 @@ object Simulator {
           Some(resultPopulation.count(_.birthYear == year)),
           Some(resultPopulation.count(_.isAliveAtYear(year))), {
             // average newborn death age
-            val deathAges = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear).toArray
+            val deathAges = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear).map(_.toDouble).toArray
             Try(Some(mean(deathAges))).getOrElse(None)
           }, {
             val populationSizeLastYear = resultPopulation.count(_.isAliveAtYear(year - 1))
