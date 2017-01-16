@@ -1,6 +1,6 @@
 package com.github.kenthorvath.telomere
 
-import com.github.kenthorvath.telomere.Model.{CancerIncidenceAdjustment, birthYearOffset}
+import com.github.kenthorvath.telomere.Model.CancerIncidenceAdjustment
 
 import scala.util.Random
 
@@ -149,14 +149,15 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
 
 case class MaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Male
-  val birthYear: Int = 0 - birthYearOffset(modelOptions.fecundityForAge)
+  val birthYear: Int = -1000 // Bad hack to ensure children are always born after the founders
+  // (requires seedPopulation to be generated sometime after year -1000)
   val birthTL: Int = modelOptions.initialPopulationTL
   val deathYear: Int = birthYear
 }
 
 case class FemaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Female
-  val birthYear: Int = 0 - birthYearOffset(modelOptions.fecundityForAge)
+  val birthYear: Int = -1000 // Bad hack as above
   val birthTL: Int = modelOptions.initialPopulationTL
   val deathYear: Int = birthYear
 }

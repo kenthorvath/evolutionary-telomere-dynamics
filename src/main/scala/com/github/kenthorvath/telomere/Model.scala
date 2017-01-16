@@ -59,27 +59,6 @@ object Model {
     override def toString = description
   }
 
-  def birthYearOffset(fecundityModel: FecundityModel): Int = {
-    // Select age offset for ancestral birth year such that mean birth year offset is approximately the same as
-    // expectation maternal age at conception. This is a hack to create a distribution of ages for the founding
-    // population to avoid having correlation effects for the founding PAC effect.
-
-    val ageProbability = (1 to 100).map(age => (age, fecundityModel.f(age)))
-    val normedAgeProbability = {
-      val normalizationFactor = ageProbability.foldLeft(0.0)({ case (acc, (age: Int, prob: Double)) => acc + prob })
-      ageProbability.map({ case (age: Int, prob: Double) => (age, prob / normalizationFactor) })
-    }
-
-    val cumulativeAgeProbability: Seq[(Int, Double)] = normedAgeProbability.scan(0, 0.0) {
-      case ((_, cumProb: Double), (age: Int, prob: Double)) => (age, cumProb + prob)
-    }
-
-    cumulativeAgeProbability
-      .find { case (age: Int, prob: Double) => Random.nextDouble() <= prob }
-      .map { case (age: Int, prob: Double) => age }
-      .getOrElse(0)
-  }
-
   val fecundity = FecundityModel(baseProbabilityOfPregnancy _, "Modern")
 
   case class CancerIncidenceAdjustment(increasedIncidence: Double) {
