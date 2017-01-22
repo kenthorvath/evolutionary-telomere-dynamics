@@ -96,10 +96,8 @@ trait Human {
     }
 
 
-    val deathAgeFromCancer: Option[Int] = modelOptions.tlDependentCancer match {
-      case true => (1 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age, modelOptions))
-      case false => None
-    }
+    val deathAgeFromCancer: Option[Int] = (1 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age, modelOptions))
+
     val deathAgeWithoutCancer: Int = Stream.from(0).find(age => Random.nextFloat() <= modelOptions.allCauseMortalityForAge.f(age)).get
 
     if (deathAgeWithoutCancer > deathAgeFromBrink)
