@@ -80,7 +80,7 @@ object Simulator {
 
       val seedPopulation: List[Human] = {
         for {
-          i <- 1 to 100
+          _ <- 1 to 100
           year <- -100 to 0
         }
           yield Child(father = MaleFounder(modelOptions = model),
