@@ -59,7 +59,14 @@ object Simulator {
       val fecundityForAge = Model.fecundity
       val initialPopulationTL = args(5).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
 
-      Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, maternalInheritance = maternalInheritance, brinkEffect = brinkEffect, cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment, allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
+      Model.Options(pacEffect = pacEffect,
+        pacAgeCenter = pacAgeCenter,
+        maternalInheritance = maternalInheritance,
+        brinkEffect = brinkEffect,
+        cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment,
+        allCauseMortalityForAge = allCauseMortalityForAge,
+        fecundityForAge = fecundityForAge,
+        initialPopulationTL = initialPopulationTL)
     }
 
 
