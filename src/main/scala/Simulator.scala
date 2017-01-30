@@ -69,6 +69,8 @@ object Simulator {
         initialPopulationTL = initialPopulationTL)
     }
 
+    val preCrossOverModel = model.copy(pacEffect = false) // Before the crossover, PAC effect is always false
+    val postCrossOverModel = model
 
     val pw = new PrintWriter(new File(args(8)))
     // PrintWriter
@@ -90,14 +92,26 @@ object Simulator {
           _ <- 1 to 100
           year <- -100 to 0
         }
-          yield Child(father = MaleFounder(modelOptions = model),
-            mother = FemaleFounder(modelOptions = model),
-            birthYear = year, modelOptions = model)
+          yield Child(father = MaleFounder(modelOptions = preCrossOverModel),
+            mother = FemaleFounder(modelOptions = preCrossOverModel),
+            birthYear = year, modelOptions = preCrossOverModel)
       }.toList.filter(_.isAliveAtYear(0))
 
-      val initialPopulation: List[Human] = Random.shuffle(seedPopulation).take(1000)
+      val crossOverYear: Int = 500
 
-      val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, population = initialPopulation, modelOptions = model)
+      val preCrossOverInitialPopulation: List[Human] = Random.shuffle(seedPopulation).take(1000)
+
+      val preCrossOverResultPopulation: List[Human] = iterate(startYear = 1,
+                                                              stopYear = crossOverYear,
+                                                              population = preCrossOverInitialPopulation,
+                                                              modelOptions = preCrossOverModel)
+
+      val postCrossOverResultPopulation: List[Human] = iterate(startYear = crossOverYear,
+                                                               stopYear = runLength + 1,
+                                                               population = preCrossOverResultPopulation,
+                                                               modelOptions = postCrossOverModel)
+
+      val resultPopulation = preCrossOverResultPopulation ++ postCrossOverResultPopulation
 
       val trialResult = (1 to runLength).map(year => {
         val newbornTLByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL.toDouble).toArray
@@ -132,7 +146,10 @@ object Simulator {
             val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
             Some(deathsThisYear)
           },
-          Some(model.toString)
+          Some(year match {
+            case n if n < crossOverYear => preCrossOverModel.toString
+            case _ => postCrossOverModel.toString
+          })
         )
         result.toArray
       }
