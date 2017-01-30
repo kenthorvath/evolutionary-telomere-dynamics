@@ -30,10 +30,10 @@ object Model {
   }
 
   case class AllCauseMortalityModel(f: (Int) => Double, description: String) {
-    override def toString = description
+    override def toString: String = description
   }
 
-  val mortality = AllCauseMortalityModel(baseProbabilityOfDeath _, "Modern")
+  val mortality = AllCauseMortalityModel(baseProbabilityOfDeath, "Modern")
 
   def baseProbabilityOfPregnancy(age: Int): Double = {
 
@@ -56,13 +56,13 @@ object Model {
   }
 
   case class FecundityModel(f: (Int) => Double, description: String) {
-    override def toString = description
+    override def toString: String = description
   }
 
-  val fecundity = FecundityModel(baseProbabilityOfPregnancy _, "Modern")
+  val fecundity = FecundityModel(baseProbabilityOfPregnancy, "Modern")
 
   case class CancerIncidenceAdjustment(increasedIncidence: Double) {
-    override def toString = increasedIncidence.toString
+    override def toString: String = increasedIncidence.toString
   }
 
   def csvHeader: String = {
@@ -76,7 +76,15 @@ object Model {
       s"Initial Population TL"
   }
 
-  case class Options(pacEffect: Boolean, pacAgeCenter: Double, maternalInheritance: Double, brinkEffect: Boolean, cancerIncidenceAdjustment: CancerIncidenceAdjustment, allCauseMortalityForAge: AllCauseMortalityModel, fecundityForAge: FecundityModel, initialPopulationTL: Int) {
+  case class Options(pacEffect: Boolean,
+                     pacAgeCenter: Double,
+                     maternalInheritance: Double,
+                     brinkEffect: Boolean,
+                     cancerIncidenceAdjustment: CancerIncidenceAdjustment,
+                     allCauseMortalityForAge: AllCauseMortalityModel,
+                     fecundityForAge: FecundityModel,
+                     initialPopulationTL: Int)
+  {
     assert(maternalInheritance >= 0.0 && maternalInheritance <= 1.0, "Maternal contribution must be between 0 and 1")
     assert(initialPopulationTL > 0, "Telomere length must be greater than zero")
 
