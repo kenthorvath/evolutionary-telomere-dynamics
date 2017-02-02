@@ -146,10 +146,7 @@ object Simulator {
             val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
             Some(deathsThisYear)
           },
-          Some(year match {
-            case n if n < crossOverYear => preCrossOverModel.toString
-            case _ => postCrossOverModel.toString
-          })
+          Some(postCrossOverModel.toString) // The will label PAC Effect as (+) even before the cross-over. Simpler for now.
         )
         result.toArray
       }
