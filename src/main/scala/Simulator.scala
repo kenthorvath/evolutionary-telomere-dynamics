@@ -19,8 +19,7 @@ object Simulator {
 
     if (startYear % 50 == 0)
       println(startYear)
-    else
-      print("")
+    else ()
 
     if (startYear >= stopYear)
       population
