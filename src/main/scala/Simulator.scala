@@ -37,7 +37,7 @@ object Simulator {
       // Find the first option effective on or after this year
       val currentModel = modelOptions
         .sortBy({ case (year, _) => year })
-        .find({ case (year, _) => year >= startYear })
+        .find({ case (year, _) => startYear >= year })
         .map({ case (_, options) => options })
         .get
 
