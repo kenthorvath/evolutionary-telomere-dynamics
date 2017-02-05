@@ -79,6 +79,7 @@ object Simulator {
     val postCrossOverModel = model
 
     val modelOptionsExecutionPlan = List((0, preCrossOverModel), (crossOverYear, postCrossOverModel))
+    println(s"Execution plan is: $modelOptionsExecutionPlan")
 
     val pw = new PrintWriter(new File(args(7)))
     // PrintWriter
