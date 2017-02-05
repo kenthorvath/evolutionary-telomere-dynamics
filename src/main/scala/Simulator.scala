@@ -44,22 +44,21 @@ object Simulator {
 
   def main(args: Array[String]) {
 
+    def maybe[T](f: => T): Option[T] = Try(Some(f)).getOrElse(None)
 
     val model = {
-      val pacEffect = args(0).toBoolean
-      val pacAgeCenter = args(1).toDouble
-      val brinkEffect = args(2).toBoolean
+      val pacAgeCenter: Option[Double] = maybe(args(0).toDouble)
+      val brinkEffect = args(1).toBoolean
 
-      val cancerIncidenceScalingFactor = args(3).toDouble
+      val cancerIncidenceScalingFactor = args(2).toDouble
       val cancerIncidenceAgeTLAdjustment = CancerIncidenceAdjustment(increasedIncidence = cancerIncidenceScalingFactor)
 
-      val maternalInheritance = args(4).toFloat
+      val maternalInheritance = args(3).toFloat
       val allCauseMortalityForAge = Model.mortality
       val fecundityForAge = Model.fecundity
-      val initialPopulationTL = args(5).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
+      val initialPopulationTL = args(4).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
 
-      Model.Options(pacEffect = pacEffect,
-        pacAgeCenter = pacAgeCenter,
+      Model.Options(pacAgeCenter = pacAgeCenter,
         maternalInheritance = maternalInheritance,
         brinkEffect = brinkEffect,
         cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment,
@@ -68,7 +67,8 @@ object Simulator {
         initialPopulationTL = initialPopulationTL)
     }
 
-    val preCrossOverModel = model.copy(pacEffect = false) // Before the crossover, PAC effect is always false
+    val preCrossOverModel = model.copy(pacAgeCenter = None)
+    // Before the crossover, PAC effect is always None
     val postCrossOverModel = model
 
     val pw = new PrintWriter(new File(args(8)))
@@ -79,12 +79,12 @@ object Simulator {
     println(Model.csvHeader)
     println(model)
     //Initialize Random number generator for reproducibility
-    val results = (1 to args(7).toInt).flatMap(trialNumber => {
+    val results = (1 to args(6).toInt).flatMap(trialNumber => {
       val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
       Random.setSeed(randomSeed)
       println(s"Trial $trialNumber")
 
-      val runLength = args(6).toInt
+      val runLength = args(5).toInt
 
       val seedPopulation: List[Human] = {
         for {

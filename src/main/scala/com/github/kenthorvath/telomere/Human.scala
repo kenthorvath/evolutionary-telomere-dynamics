@@ -139,13 +139,14 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
     modelOptions.maternalInheritance * mother.birthTL).round.toInt
   val stochasticEffect: Int = math.round(Random.nextGaussian() * tlStandardDeviation).toInt
 
-  val pacEffect: Int = father match {
-    case MaleFounder(_) => 0
-    case _ => (-15 * (modelOptions.pacAgeCenter - father.ageForYear(birthYear))).toInt
+  val pacEffect: Option[Int] = father match {
+    case MaleFounder(_) => None
+    case _ => modelOptions.pacAgeCenter
+      .map(ageCenter => -15 * (ageCenter - father.ageForYear(birthYear)).toInt)
   }
 
-  val birthTL: Int = baseTL + stochasticEffect +
-    (if (modelOptions.pacEffect) pacEffect else 0)
+  val birthTL: Int = baseTL + stochasticEffect + pacEffect.getOrElse(0)
+
 
   val deathYear: Int = predictDeathYear(modelOptions)
 
