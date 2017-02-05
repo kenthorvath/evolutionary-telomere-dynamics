@@ -1,7 +1,5 @@
 package com.github.kenthorvath.telomere
 
-import scala.util.Random
-
 /**
   * Created by kent on 8/1/16.
   */

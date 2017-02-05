@@ -2,16 +2,15 @@
   * Created by kent on 6/17/16.
   */
 
-import com.github.kenthorvath.telomere._
-
-import scala.annotation.tailrec
-import scala.util.{Random, Try}
 import java.io._
 
 import breeze.linalg._
 import breeze.stats._
-
 import com.github.kenthorvath.telomere.Model.{CancerIncidenceAdjustment, Options}
+import com.github.kenthorvath.telomere._
+
+import scala.annotation.tailrec
+import scala.util.{Random, Try}
 
 object Simulator {
 
