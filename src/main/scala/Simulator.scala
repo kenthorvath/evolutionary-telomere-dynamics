@@ -15,7 +15,7 @@ import scala.util.{Random, Try}
 object Simulator {
 
   @tailrec
-  def iterate(startYear: Int, stopYear: Int, population: List[Human], modelOptions: Options): List[Human] = {
+  def iterate(startYear: Int, stopYear: Int, population: List[Human], modelOptions: List[(Int, Options)]): List[Human] = {
 
     if (startYear % 50 == 0)
       println(startYear)
@@ -34,9 +34,16 @@ object Simulator {
         .filter(_ isAliveAtYear startYear)
         .filter(_ isCapableOfMatingForYear startYear)
 
+      // Find the first option effective on or after this year
+      val currentModel = modelOptions
+        .sortBy({ case (year, _) => year })
+        .find({ case (year, _) => year >= startYear })
+        .map({ case (_, options) => options })
+        .get
+
       val nextGeneration: List[Human] = femalePopulation.par
         .flatMap(mother => Try(List(Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
-          mother = mother, modelOptions = modelOptions))).getOrElse(Nil)).toList
+          mother = mother, modelOptions = currentModel))).getOrElse(Nil)).toList
 
       iterate(startYear + 1, stopYear, population = nextGeneration union population, modelOptions)
     }
@@ -69,9 +76,12 @@ object Simulator {
 
     val preCrossOverModel = model.copy(pacAgeCenter = None)
     // Before the crossover, PAC effect is always None
+    val crossOverYear: Int = 500
     val postCrossOverModel = model
 
-    val pw = new PrintWriter(new File(args(8)))
+    val modelOptionsExecutionPlan = List((0, preCrossOverModel), (crossOverYear, postCrossOverModel))
+
+    val pw = new PrintWriter(new File(args(7)))
     // PrintWriter
     // Write CSV header
     pw.write(s"trialNumber,year,avgNewbornTL,stdDevNewbornTL,Q1NewbornTL,Q2NewbornTL,Q3NewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
@@ -96,21 +106,13 @@ object Simulator {
             birthYear = year, modelOptions = preCrossOverModel)
       }.toList.filter(_.isAliveAtYear(0))
 
-      val crossOverYear: Int = 500
 
       val preCrossOverInitialPopulation: List[Human] = Random.shuffle(seedPopulation).take(1000)
 
-      val preCrossOverResultPopulation: List[Human] = iterate(startYear = 1,
-                                                              stopYear = crossOverYear,
-                                                              population = preCrossOverInitialPopulation,
-                                                              modelOptions = preCrossOverModel)
-
-      val postCrossOverResultPopulation: List[Human] = iterate(startYear = crossOverYear,
-                                                               stopYear = runLength + 1,
-                                                               population = preCrossOverResultPopulation,
-                                                               modelOptions = postCrossOverModel)
-
-      val resultPopulation = preCrossOverResultPopulation ++ postCrossOverResultPopulation
+      val resultPopulation: List[Human] = iterate(startYear = 1,
+        stopYear = crossOverYear,
+        population = preCrossOverInitialPopulation,
+        modelOptions = modelOptionsExecutionPlan)
 
       val trialResult = (1 to runLength).map(year => {
         val newbornTLByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL.toDouble).toArray
@@ -145,7 +147,9 @@ object Simulator {
             val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
             Some(deathsThisYear)
           },
-          Some(postCrossOverModel.toString) // The will label PAC Effect as (+) even before the cross-over. Simpler for now.
+          // TODO: rethink how this works when there are three or more models in the execution plan
+          // TODO: for now, just report the postCrossOverModel, as it's simpler for analysis purposes.
+          Some(postCrossOverModel.toString)
         )
         result.toArray
       }
