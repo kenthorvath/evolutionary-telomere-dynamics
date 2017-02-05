@@ -110,7 +110,7 @@ object Simulator {
       val preCrossOverInitialPopulation: List[Human] = Random.shuffle(seedPopulation).take(1000)
 
       val resultPopulation: List[Human] = iterate(startYear = 1,
-        stopYear = crossOverYear,
+        stopYear = runLength,
         population = preCrossOverInitialPopulation,
         modelOptions = modelOptionsExecutionPlan)
 
