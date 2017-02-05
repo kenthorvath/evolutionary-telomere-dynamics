@@ -92,7 +92,7 @@ object Model {
       s"${pacIndicator(pacAgeCenter)}," +
         s"${withOrWithoutIndicator(brinkEffect)}," +
         s"$cancerIncidenceAdjustment," +
-        s"$maternalInheritance," +
+        f"$maternalInheritance%4.3f," +
         s"$fecundityForAge," +
         s"$allCauseMortalityForAge," +
         s"$initialPopulationTL"
