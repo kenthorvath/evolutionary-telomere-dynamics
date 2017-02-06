@@ -12,15 +12,13 @@ object JobGenerator {
       ()
     }
 
-    def pacAgeCenterToArg(ageCenter: Option[Double]): String = ageCenter.map(_.toString).getOrElse("None")
-
     val models = for {
       brinkEffect <- List(true)
-      pacAgeCenter: Option[Double] <- None ++ ((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).map(Some(_)).toSet
+      pacAgeCenter: String <- "None" ++ ((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).map(_.toString).toSet
       cancerIncidenceAdjustment <- List(0) ++ ((0 to 2) map (math.pow(2, _)))
       maternalInheritance <- List(0.575)
       initialPopulationTL <- (7000 to 8000 by 1000) ++ (9000 to 11000 by 250) ++ (12000 to 13000 by 1000)
-    } yield s"${pacAgeCenterToArg(pacAgeCenter)} $brinkEffect $cancerIncidenceAdjustment $maternalInheritance $initialPopulationTL ${args(0)} ${args(1)}"
+    } yield s"$pacAgeCenter $brinkEffect $cancerIncidenceAdjustment $maternalInheritance $initialPopulationTL ${args(0)} ${args(1)}"
 
     object Counter {
       var x: Int = 0
