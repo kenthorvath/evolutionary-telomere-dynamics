@@ -137,7 +137,7 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
   val pacEffect: Option[Int] = father match {
     case MaleFounder(_) => None
     case _ => modelOptions.pacAgeCenter
-      .map(ageCenter => -15 * (ageCenter - father.ageForYear(birthYear)).toInt)
+      .map(ageCenter => (-15 * (ageCenter - father.ageForYear(birthYear))).round.toInt)
   }
 
   val birthTL: Int = baseTL + stochasticEffect + pacEffect.getOrElse(0)
