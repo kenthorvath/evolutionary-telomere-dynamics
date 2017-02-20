@@ -54,15 +54,15 @@ object Simulator {
 
     val model = {
       val pacAgeCenter: Option[Double] = maybe(args(0).toDouble)
-      val brinkEffect = args(1).toBoolean
+      val brinkEffect = args(2).toBoolean
 
-      val cancerIncidenceScalingFactor = args(2).toDouble
+      val cancerIncidenceScalingFactor = args(3).toDouble
       val cancerIncidenceAgeTLAdjustment = CancerIncidenceAdjustment(increasedIncidence = cancerIncidenceScalingFactor)
 
-      val maternalInheritance = args(3).toFloat
+      val maternalInheritance = args(4).toFloat
       val allCauseMortalityForAge = Model.mortality
       val fecundityForAge = Model.fecundity
-      val initialPopulationTL = args(4).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
+      val initialPopulationTL = args(5).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
 
       Model.Options(pacAgeCenter = pacAgeCenter,
         maternalInheritance = maternalInheritance,
@@ -73,15 +73,19 @@ object Simulator {
         initialPopulationTL = initialPopulationTL)
     }
 
-    val preCrossOverModel = model.copy(pacAgeCenter = None)
-    // Before the crossover, PAC effect is always None
-    val crossOverYear: Int = 500
-    val postCrossOverModel = model
+    val crossOverYear: Option[Int] = maybe(args(1).toInt)
 
-    val modelOptionsExecutionPlan = List((0, preCrossOverModel), (crossOverYear, postCrossOverModel))
+    val modelOptionsExecutionPlan = crossOverYear.map { year =>
+      // Before the crossover, PAC effect is always None
+      val preCrossOverModel = model.copy(pacAgeCenter = None)
+      val postCrossOverModel = model
+      List((0, preCrossOverModel), (year, postCrossOverModel))
+    }
+      .getOrElse(List((0, model)))
+
     println(s"Execution plan is: $modelOptionsExecutionPlan")
 
-    val pw = new PrintWriter(new File(args(7)))
+    val pw = new PrintWriter(new File(args(8)))
     // PrintWriter
     // Write CSV header
     pw.write(s"trialNumber,year,avgNewbornTL,stdDevNewbornTL,Q1NewbornTL,Q2NewbornTL,Q3NewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
@@ -89,21 +93,24 @@ object Simulator {
     println(Model.csvHeader)
     println(model)
     //Initialize Random number generator for reproducibility
-    val results = (1 to args(6).toInt).flatMap(trialNumber => {
+    val results = (1 to args(7).toInt).flatMap(trialNumber => {
       val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
       Random.setSeed(randomSeed)
       println(s"Trial $trialNumber")
 
-      val runLength = args(5).toInt
+      val runLength = args(6).toInt
 
       val seedPopulation: List[Human] = {
         for {
           _ <- 1 to 100
           year <- -100 to 0
         }
-          yield Child(father = MaleFounder(modelOptions = preCrossOverModel),
-            mother = FemaleFounder(modelOptions = preCrossOverModel),
-            birthYear = year, modelOptions = preCrossOverModel)
+          yield {
+            val pacFreeModel = model.copy(pacAgeCenter = None)
+            Child(father = MaleFounder(modelOptions = pacFreeModel),
+              mother = FemaleFounder(modelOptions = pacFreeModel),
+              birthYear = year, modelOptions = pacFreeModel)
+          }
       }.toList.filter(_.isAliveAtYear(0))
 
 
@@ -148,8 +155,8 @@ object Simulator {
             Some(deathsThisYear)
           },
           // TODO: rethink how this works when there are three or more models in the execution plan
-          // TODO: for now, just report the postCrossOverModel, as it's simpler for analysis purposes.
-          Some(postCrossOverModel.toString)
+          // TODO: for now, just report the postCrossOverModel (i.e. model), as it's simpler for analysis purposes.
+          Some(model.toString)
         )
         result.toArray
       }
