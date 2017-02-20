@@ -100,11 +100,6 @@ trait Human {
 
     val deathAgeWithoutCancer: Int = Stream.from(0).find(age => Random.nextFloat() <= modelOptions.allCauseMortalityForAge.f(age)).get
 
-//    if (deathAgeWithoutCancer > deathAgeFromBrink)
-//      println(s"deathAgeFromBrink = $deathAgeFromBrink, deathAgeFromCancer = $deathAgeFromCancer, deathAgeWithoutCancer = $deathAgeWithoutCancer")
-//    else
-//      ()
-
     birthYear + List(
       deathAgeFromBrink,
       deathAgeFromCancer.getOrElse(deathAgeWithoutCancer),
