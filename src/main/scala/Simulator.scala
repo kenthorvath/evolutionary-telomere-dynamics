@@ -15,36 +15,38 @@ import scala.util.{Random, Try}
 object Simulator {
 
   @tailrec
-  def iterate(startYear: Int, stopYear: Int, population: List[Human], modelOptions: List[(Int, Options)]): List[Human] = {
+  def iterate(currentYear: Int, stopYear: Int, population: List[Human], modelOptions: List[(Int, Options)]): List[Human] = {
 
-    if (startYear % 50 == 0)
-      println(startYear)
-    else ()
 
-    if (startYear >= stopYear)
+    if (currentYear >= stopYear)
       population
     else {
       val femalePopulation: List[Human] = population
         .filter(_.sex == Female)
-        .filter(_ isAliveAtYear startYear)
-        .filter(_ hasChildAtYear startYear)
+        .filter(_ isAliveAtYear currentYear)
+        .filter(_ hasChildAtYear currentYear)
       val malePopulation: List[Human] = population
         .filter(_.sex == Male)
-        .filter(_ isAliveAtYear startYear)
-        .filter(_ isCapableOfMatingForYear startYear)
+        .filter(_ isAliveAtYear currentYear)
+        .filter(_ isCapableOfMatingForYear currentYear)
 
       // Find the first option effective on or after this year
       val currentModel = modelOptions
-        .sortBy({ case (year, _) => year })
-        .find({ case (year, _) => startYear >= year })
+        .sortBy({ case (effectiveYear, _) => effectiveYear })
+        .find({ case (effectiveYear, _) => currentYear >= effectiveYear })
         .map({ case (_, options) => options })
         .get
 
+      if (currentYear % 50 == 0) {
+        println(s"currentYear=$currentYear, executionPlan=$modelOptions, pacEffect=${currentModel.pacAgeCenter}")
+      }
+      else ()
+
       val nextGeneration: List[Human] = femalePopulation.par
-        .flatMap(mother => Try(List(Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
+        .flatMap(mother => Try(List(Child(birthYear = currentYear, father = Random.shuffle(malePopulation).head,
           mother = mother, modelOptions = currentModel))).getOrElse(Nil)).toList
 
-      iterate(startYear + 1, stopYear, population = nextGeneration union population, modelOptions)
+      iterate(currentYear + 1, stopYear, population = nextGeneration union population, modelOptions)
     }
   }
 
@@ -116,7 +118,7 @@ object Simulator {
 
       val preCrossOverInitialPopulation: List[Human] = Random.shuffle(seedPopulation).take(1000)
 
-      val resultPopulation: List[Human] = iterate(startYear = 1,
+      val resultPopulation: List[Human] = iterate(currentYear = 1,
         stopYear = runLength + 1,
         population = preCrossOverInitialPopulation,
         modelOptions = modelOptionsExecutionPlan)
