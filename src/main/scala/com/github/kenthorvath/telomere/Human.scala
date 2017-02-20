@@ -142,7 +142,6 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
 
   val birthTL: Int = baseTL + stochasticEffect + pacEffect.getOrElse(0)
 
-
   val deathYear: Int = predictDeathYear(modelOptions)
 
   override def ageForYear(year: Int): Int = year - birthYear
