@@ -17,7 +17,7 @@ object JobGenerator {
       pacAgeCenter: String <- List("None") ++ ((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).map(_.toString).toSet
       cancerIncidenceAdjustment <- List(0) ++ ((0 to 2) map (math.pow(2, _)))
       maternalInheritance <- List(0.575)
-      initialPopulationTL <- (7000 to 8000 by 1000) ++ (9000 to 11000 by 250) ++ (12000 to 13000 by 1000)
+      initialPopulationTL <- List(5000, 6000, 8500, 14000, 15000)
     } yield {
       val crossOverYear: String = pacAgeCenter match {
         case "None" => "None"
