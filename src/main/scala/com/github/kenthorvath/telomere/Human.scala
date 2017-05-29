@@ -24,8 +24,6 @@ trait Human {
 
   def birthYear: Int
 
-  assert(birthYear >= 0, "Birth year must be non-negative")
-
   def deathYear: Int
 
   def pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
@@ -39,7 +37,6 @@ trait Human {
       case n if n <= 20 => birthTL - 70 * n
       case n => birthTL - (70 * 20) - (25 * (n - 20))
     }
-    assert(result >= 0, "LTL cannot be negative")
     result
   }
 
@@ -55,13 +52,14 @@ trait Human {
   def isAliveAtYear(year: Int): Boolean = (year >= birthYear) && (year < deathYear)
 
   def baseProbabilityOfCancer(age: Int, modelOptions: Model.Options): Double = {
+    val scalingFactor = modelOptions.cancerIncidenceAdjustment match {
+      case CancerIncidenceAdjustment(n) => n
+    }
+
     def cancerIncidenceAfter20(age: Int): Double = {
       val c: Map[Sex, Int] = Map(Male -> 311, Female -> 178)
       val h: Map[Sex, Double] = Map(Male -> 5.50, Female -> 4.44)
-      val r: Map[Sex, Double] = modelOptions.cancerIncidenceAdjustment match {
-        case CancerIncidenceAdjustment(true, _) => Map(Male -> 0.113, Female -> 0.085)
-        case CancerIncidenceAdjustment(false, _)  => Map(Male -> 0.090, Female -> 0.063)
-      }
+      val r: Map[Sex, Double] = Map(Male -> 0.090, Female -> 0.063)
       val p2: Map[Sex, Double] = Map(Male -> 1.0e-9, Female -> 6.0e-9)
       val mcs20: Double = 1.0e8
       val tlCritical: Double = 6.5
@@ -75,27 +73,31 @@ trait Human {
       incidencePer100K / 100e3
     }
 
-    age match {
+    val result = age match {
       case n if n <= 20 => 0.0
       case n if n > 20 => cancerIncidenceAfter20(age = n)
     }
 
+    result * scalingFactor
   }
 
   def brinkDeathProbability(telomereLength: Int): Double = {
     val telomereLengthInKB = telomereLength.toDouble / 1000
     val kConstant = 3
     val brinkConstantInKB = 4
-    1.0 / (1 + math.exp(kConstant*(telomereLengthInKB - brinkConstantInKB)))
+    1.0 / (1 + math.exp(kConstant * (telomereLengthInKB - brinkConstantInKB)))
   }
 
   def predictDeathYear(modelOptions: Model.Options): Int = {
     // This should always return a value because baseProbabilityOfDeath defaults to 1.00
-    val deathAgeFromBrink: Int = Stream.from(1).find(age => Random.nextFloat() <= brinkDeathProbability(LTLForYear(birthYear + age))).get
-    val deathAgeFromCancer: Option[Int] = modelOptions.tlDependentCancer match {
-      case true => (1 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age, modelOptions))
-      case false => None
+    val deathAgeFromBrink: Int = modelOptions.brinkEffect match {
+      case true => Stream.from(1).find(age => Random.nextFloat() <= brinkDeathProbability(LTLForYear(birthYear + age))).get
+      case false => Stream.from(1).find(age => LTLForYear(birthYear + (age + 1)) <= 0).get
     }
+
+
+    val deathAgeFromCancer: Option[Int] = (1 to 100).find(age => Random.nextFloat() <= baseProbabilityOfCancer(age, modelOptions))
+
     val deathAgeWithoutCancer: Int = Stream.from(0).find(age => Random.nextFloat() <= modelOptions.allCauseMortalityForAge.f(age)).get
 
     birthYear + List(
@@ -105,12 +107,19 @@ trait Human {
   }
 
   def predictPregnancyAges(modelOptions: Model.Options): List[Int] = {
+
+    def intFromExpectation(expectationValue: Double): Int = {
+      // return one of two consecutive integers, given an expectation value
+      val residual = expectationValue - expectationValue.floor
+      if (Random.nextDouble() <= 1 - residual) expectationValue.floor.toInt else expectationValue.ceil.toInt
+    }
+
     val allAges = (0 until deathAge).filter(age => Random.nextFloat() <= modelOptions.fecundityForAge.f(age)).toList
     val nonConsecutiveAges: List[Int] =
       allAges
         .sorted
         .foldLeft(List[Int]())((acc, age) => if (!acc.contains(age - 1)) age :: acc else acc)
-    Random.shuffle(nonConsecutiveAges).take(Random.shuffle(List(4, 5)).head) //4.5-max births
+    Random.shuffle(nonConsecutiveAges).take(intFromExpectation(3)) // Max births hack
   }
 }
 
@@ -124,34 +133,37 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
   val baseTL: Int = ((1.0 - modelOptions.maternalInheritance) * father.birthTL +
     modelOptions.maternalInheritance * mother.birthTL).round.toInt
   val stochasticEffect: Int = math.round(Random.nextGaussian() * tlStandardDeviation).toInt
-  val sexEffect: Int = if (sex == Female) 150 else 0
-  val pacEffect: Int = father match {
-    case Adam(_) => 0
-    case _ => -15 * (modelOptions.pacAgeCenter - father.ageForYear(birthYear))
+
+  val pacEffect: Option[Int] = father match {
+    case MaleFounder(_) => None
+    case _ => modelOptions.pacAgeCenter
+      .map(ageCenter => (-15 * (ageCenter - father.ageForYear(birthYear))).round.toInt)
   }
 
-  val birthTL: Int = baseTL + stochasticEffect +
-    (if (modelOptions.sexEffect) sexEffect else 0) +
-    (if (modelOptions.pacEffect) pacEffect else 0)
+  val birthTL: Int = baseTL + stochasticEffect + pacEffect.getOrElse(0)
 
-
-  val deathYear = predictDeathYear(modelOptions)
+  val deathYear: Int = predictDeathYear(modelOptions)
 
   override def ageForYear(year: Int): Int = year - birthYear
 
   override val pregnancyAges: List[Int] = predictPregnancyAges(modelOptions)
+
+  assert(LTLForYear(deathYear) >= 0, s"LTL=${LTLForYear(deathYear)} at age=${ageForYear(deathYear)}, birth=$birthYear, death=$deathYear -> cannot be negative during life course")
 }
 
-case class Adam(modelOptions: Model.Options) extends Human {
+case class MaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Male
-  val birthYear = 0
-  val birthTL = modelOptions.initialPopulationTL
-  val deathYear = birthYear
+  val birthYear: Int = -1000
+  // Bad hack to ensure children are always born after the founders
+  // (requires seedPopulation to be generated sometime after year -1000)
+  val birthTL: Int = modelOptions.initialPopulationTL
+  val deathYear: Int = birthYear
 }
 
-case class Eve(modelOptions: Model.Options) extends Human {
+case class FemaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Female
-  val birthYear = 0
-  val birthTL = modelOptions.initialPopulationTL
-  val deathYear = birthYear
+  val birthYear: Int = -1000
+  // Bad hack as above
+  val birthTL: Int = modelOptions.initialPopulationTL
+  val deathYear: Int = birthYear
 }

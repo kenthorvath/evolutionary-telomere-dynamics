@@ -2,113 +2,153 @@
   * Created by kent on 6/17/16.
   */
 
+import java.io._
+
+import breeze.linalg._
+import breeze.stats._
+import com.github.kenthorvath.telomere.Model.{CancerIncidenceAdjustment, Options}
 import com.github.kenthorvath.telomere._
 
 import scala.annotation.tailrec
 import scala.util.{Random, Try}
-import java.io._
-
-import com.github.kenthorvath.telomere.Model.CancerIncidenceAdjustment
 
 object Simulator {
 
   @tailrec
-  def iterate(startYear: Int, stopYear: Int, stepSize: Int, population: List[Human], modelOptions: Model.Options): List[Human] = {
+  def iterate(currentYear: Int, stopYear: Int, population: List[Human], modelOptions: List[(Int, Options)]): List[Human] = {
 
-    if (startYear % 50 == 0)
-      println(startYear)
-    else
-      print("")
 
-    val adjustedModelOptions = modelOptions
-    //      if (startYear > 200)
-    //      modelOptions.copy(cancerIncidenceAdjustment = Some(CancerIncidenceAdjustment(10,0,"+10y")))
-    //    else
-    //      modelOptions
-
-    if (startYear >= stopYear)
+    if (currentYear >= stopYear)
       population
     else {
       val femalePopulation: List[Human] = population
         .filter(_.sex == Female)
-        .filter(_ isAliveAtYear startYear)
-        .filter(_ hasChildAtYear startYear)
+        .filter(_ isAliveAtYear currentYear)
+        .filter(_ hasChildAtYear currentYear)
       val malePopulation: List[Human] = population
         .filter(_.sex == Male)
-        .filter(_ isAliveAtYear startYear)
-        .filter(_ isCapableOfMatingForYear startYear)
+        .filter(_ isAliveAtYear currentYear)
+        .filter(_ isCapableOfMatingForYear currentYear)
+
+      // Find the first option effective on or after this year
+      val currentModel = modelOptions
+        .sortBy({ case (effectiveYear, _) => effectiveYear })(Ordering.fromLessThan(_ > _))
+        .find({ case (effectiveYear, _) => currentYear >= effectiveYear })
+        .map({ case (_, options) => options })
+        .get
+
+      if (currentYear % 50 == 0) {
+        println(s"currentYear=$currentYear, executionPlan=$modelOptions, pacEffect=${currentModel.pacAgeCenter}")
+      }
+      else ()
 
       val nextGeneration: List[Human] = femalePopulation.par
-        .flatMap(mother => Try(List(Child(birthYear = startYear, father = Random.shuffle(malePopulation).head,
-          mother = mother, modelOptions = adjustedModelOptions))).getOrElse(Nil)).toList
+        .flatMap(mother => Try(List(Child(birthYear = currentYear, father = Random.shuffle(malePopulation).head,
+          mother = mother, modelOptions = currentModel))).getOrElse(Nil)).toList
 
-      iterate(startYear + stepSize, stopYear, stepSize, population = nextGeneration union population, adjustedModelOptions)
+      iterate(currentYear + 1, stopYear, population = nextGeneration union population, modelOptions)
     }
   }
 
   def main(args: Array[String]) {
 
+    def maybe[T](f: => T): Option[T] = Try(Some(f)).getOrElse(None)
 
     val model = {
-      val pacEffect = args(0).toBoolean
-      val pacAgeCenter = args(1).toInt
-      val sexEffect = args(2).toBoolean
-      val tlDependentCancer = args(3).toBoolean
-      val cancerIncidenceAgeTLAdjustment =
+      val pacAgeCenter: Option[Double] = maybe(args(0).toDouble)
+      val brinkEffect = args(2).toBoolean
 
-        if (args(4).toBoolean) {
-          CancerIncidenceAdjustment(increasedIncidence = false, "(-)")
-        } else {
-          CancerIncidenceAdjustment(increasedIncidence = true, "(+)")
-        }
-      val maternalInheritance = args(5).toFloat
-      val allCauseMortalityForAge = Model.archaicMortality
-      val fecundityForAge = Model.archaicFecundity
-      val initialPopulationTL = args(6).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
+      val cancerIncidenceScalingFactor = args(3).toDouble
+      val cancerIncidenceAgeTLAdjustment = CancerIncidenceAdjustment(increasedIncidence = cancerIncidenceScalingFactor)
 
-      Model.Options(pacEffect = pacEffect, pacAgeCenter = pacAgeCenter, sexEffect = sexEffect, maternalInheritance = maternalInheritance,
-        tlDependentCancer = tlDependentCancer, cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment,
-        allCauseMortalityForAge = allCauseMortalityForAge, fecundityForAge = fecundityForAge, initialPopulationTL = initialPopulationTL)
+      val maternalInheritance = args(4).toFloat
+      val allCauseMortalityForAge = Model.mortality
+      val fecundityForAge = Model.fecundity
+      val initialPopulationTL = args(5).toInt //(7000 to 12000 by 1000) ++ (9100 to 9900 by 100)
+
+      Model.Options(pacAgeCenter = pacAgeCenter,
+        maternalInheritance = maternalInheritance,
+        brinkEffect = brinkEffect,
+        cancerIncidenceAdjustment = cancerIncidenceAgeTLAdjustment,
+        allCauseMortalityForAge = allCauseMortalityForAge,
+        fecundityForAge = fecundityForAge,
+        initialPopulationTL = initialPopulationTL)
     }
 
+    val crossOverYear: Option[Int] = maybe(args(1).toInt)
 
-    val pw = new PrintWriter(new File(args(9)))
+    val modelOptionsExecutionPlan = crossOverYear.map { year =>
+      // Before the crossover, PAC effect is always None
+      val preCrossOverModel = model.copy(pacAgeCenter = None)
+      val postCrossOverModel = model
+      List((0, preCrossOverModel), (year, postCrossOverModel))
+    }
+      .getOrElse(List((0, model)))
+
+    println(s"Execution plan is: $modelOptionsExecutionPlan")
+
+    val pw = new PrintWriter(new File(args(8)))
     // PrintWriter
     // Write CSV header
-    pw.write(s"trialNumber,year,avgNewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
+    pw.write(s"trialNumber,year,avgNewbornTL,stdDevNewbornTL,Q1NewbornTL,Q2NewbornTL,Q3NewbornTL,birthRate,populationCount,avgNewbornLifeExpectancy,deathRate,${Model.csvHeader}\n")
 
     println(Model.csvHeader)
     println(model)
     //Initialize Random number generator for reproducibility
-    val results = (1 to args(8).toInt).flatMap(trialNumber => {
+    val results = (1 to args(7).toInt).flatMap(trialNumber => {
       val randomSeed: Int = 0xdf2c9fb9 + trialNumber // Taken from truncated first commit hash, if curious
       Random.setSeed(randomSeed)
       println(s"Trial $trialNumber")
 
-      val runLength = args(7).toInt
-      val initialPopulation: List[Human] = {
-        for {i <- 1 to 1000}
-          yield Child(father = Adam(modelOptions = model),
-            mother = Eve(modelOptions = model),
-            birthYear = 1, modelOptions = model)
-      }.toList
+      val runLength = args(6).toInt
 
-      val resultPopulation: List[Human] = iterate(startYear = 1, stopYear = runLength + 1, stepSize = 1,
-        population = initialPopulation, modelOptions = model)
+      val seedPopulation: List[Human] = {
+        for {
+          _ <- 1 to 100
+          year <- -100 to 0
+        }
+          yield {
+            val pacFreeModel = model.copy(pacAgeCenter = None)
+            Child(father = MaleFounder(modelOptions = pacFreeModel),
+              mother = FemaleFounder(modelOptions = pacFreeModel),
+              birthYear = year, modelOptions = pacFreeModel)
+          }
+      }.toList.filter(_.isAliveAtYear(0))
+
+
+      val preCrossOverInitialPopulation: List[Human] = Random.shuffle(seedPopulation).take(1000)
+
+      val resultPopulation: List[Human] = iterate(currentYear = 1,
+        stopYear = runLength + 1,
+        population = preCrossOverInitialPopulation,
+        modelOptions = modelOptionsExecutionPlan)
 
       val trialResult = (1 to runLength).map(year => {
-        Vector(
+        val newbornTLByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL.toDouble).toArray
+
+        val result: Vector[Option[Any]] = Vector(
           Some(trialNumber),
           Some(year), {
-            // average newborn TL
-            val birthByYear = resultPopulation.filter(_.birthYear == year).map(_.birthTL)
-            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+            // mean newborn TL
+            Try(Some(mean(newbornTLByYear))).getOrElse(None)
+          }, {
+            // std newborn TL
+            Try(Some(stddev(newbornTLByYear))).getOrElse(None)
+          }, {
+            // Q1 newborn TL
+            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.25))).getOrElse(None)
+          }, {
+            // Q2 newborn TL
+            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.5))).getOrElse(None)
+          }, {
+            // Q3 newborn TL
+            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.75))).getOrElse(None)
           },
           Some(resultPopulation.count(_.birthYear == year)),
           Some(resultPopulation.count(_.isAliveAtYear(year))), {
             // average newborn death age
-            val birthByYear = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear)
-            Try(Some(birthByYear.sum / birthByYear.length)).getOrElse(None)
+            val deathAges = resultPopulation.filter(_.birthYear == year).map(x => x.deathYear - x.birthYear).map(_.toDouble).toArray
+            Try(Some(mean(deathAges))).getOrElse(None)
           }, {
             val populationSizeLastYear = resultPopulation.count(_.isAliveAtYear(year - 1))
             val populationSizeThisYear = resultPopulation.count(_.isAliveAtYear(year))
@@ -116,8 +156,11 @@ object Simulator {
             val deathsThisYear = populationSizeLastYear - (populationSizeThisYear - birthsThisYear)
             Some(deathsThisYear)
           },
+          // TODO: rethink how this works when there are three or more models in the execution plan
+          // TODO: for now, just report the postCrossOverModel (i.e. model), as it's simpler for analysis purposes.
           Some(model.toString)
         )
+        result.toArray
       }
       )
       trialResult
@@ -134,7 +177,7 @@ object Simulator {
         .foldLeft("")(_ + _ + "\n")
     })
 
-    pw.close
+    pw.close()
     System.exit(0)
   }
 
