@@ -98,9 +98,10 @@ trait Human {
 
   def predictDeathYear(modelOptions: Model.Options): Int = {
     // This should always return a value because baseProbabilityOfDeath defaults to 1.00
-    val deathAgeFromBrink: Int = modelOptions.brinkEffect match {
-      case true => Stream.from(1).find(age => Random.nextFloat() <= brinkDeathProbability(LTLForYear(birthYear + age))).get
-      case false => Stream.from(1).find(age => LTLForYear(birthYear + (age + 1)) <= 0).get
+    val deathAgeFromBrink: Int = if (modelOptions.brinkEffect) {
+      Stream.from(1).find(age => Random.nextFloat() <= brinkDeathProbability(LTLForYear(birthYear + age))).get
+    } else {
+      Stream.from(1).find(age => LTLForYear(birthYear + (age + 1)) <= 0).get
     }
 
 
@@ -160,7 +161,7 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
 }
 
 case class MaleFounder(modelOptions: Model.Options) extends Human {
-  override val sex = Male
+  override val sex: Male.type = Male
   val birthYear: Int = -1000
   // TODO: Find a more correct way to handle this
   // Bad hack to ensure children are always born after the founders
@@ -170,7 +171,7 @@ case class MaleFounder(modelOptions: Model.Options) extends Human {
 }
 
 case class FemaleFounder(modelOptions: Model.Options) extends Human {
-  override val sex = Female
+  override val sex: Female.type = Female
   val birthYear: Int = -1000
   // TODO: Bad hack as above
   val birthTL: Int = modelOptions.initialPopulationTL

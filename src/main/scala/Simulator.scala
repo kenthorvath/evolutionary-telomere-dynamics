@@ -21,8 +21,8 @@
 
 import java.io._
 
-import breeze.linalg._
-import breeze.stats._
+import breeze.stats.DescriptiveStats.percentile
+import breeze.stats.{mean, stddev}
 import com.github.kenthorvath.telomere.Model.{CancerIncidenceAdjustment, Options}
 import com.github.kenthorvath.telomere._
 
@@ -157,13 +157,13 @@ object Simulator {
             Try(Some(stddev(newbornTLByYear))).getOrElse(None)
           }, {
             // Q1 newborn TL
-            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.25))).getOrElse(None)
+            Try(Some(percentile(newbornTLByYear, 0.25))).getOrElse(None)
           }, {
             // Q2 newborn TL
-            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.5))).getOrElse(None)
+            Try(Some(percentile(newbornTLByYear, 0.5))).getOrElse(None)
           }, {
             // Q3 newborn TL
-            Try(Some(DescriptiveStats.percentile(newbornTLByYear, 0.75))).getOrElse(None)
+            Try(Some(percentile(newbornTLByYear, 0.75))).getOrElse(None)
           },
           Some(resultPopulation.count(_.birthYear == year)),
           Some(resultPopulation.count(_.isAliveAtYear(year))), {

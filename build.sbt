@@ -6,8 +6,7 @@ lazy val root = (project in file(".")).
     mainClass in Compile := Some("com.github.kenthorvath.Simulator")
   )
 
-libraryDependencies ++= Seq("org.scalacheck" %% "scalacheck" % "1.13.2" % "test",
-  "org.typelevel" %% "cats" % "0.7.2",
+libraryDependencies ++= Seq(
   "org.scalanlp" %% "breeze" % "latest.integration",
   "org.scalanlp" %% "breeze-natives" % "latest.integration"
 )
