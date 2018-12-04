@@ -1,12 +1,19 @@
+/**
+  * Human
+  * -----
+  *
+  * Core code to model virtual humans and inherited properties across matings
+  *
+  * Author: Kent Horvath, MD PhD
+  * Date: October 6, 2016
+  */
+
 package com.github.kenthorvath.telomere
 
 import com.github.kenthorvath.telomere.Model.CancerIncidenceAdjustment
 
 import scala.util.Random
 
-/**
-  * Created by kent on 6/17/16.
-  */
 
 sealed trait Sex
 
@@ -154,6 +161,7 @@ case class Child(birthYear: Int, father: Human, mother: Human, modelOptions: Mod
 case class MaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Male
   val birthYear: Int = -1000
+  // TODO: Find a more correct way to handle this
   // Bad hack to ensure children are always born after the founders
   // (requires seedPopulation to be generated sometime after year -1000)
   val birthTL: Int = modelOptions.initialPopulationTL
@@ -163,7 +171,7 @@ case class MaleFounder(modelOptions: Model.Options) extends Human {
 case class FemaleFounder(modelOptions: Model.Options) extends Human {
   override val sex = Female
   val birthYear: Int = -1000
-  // Bad hack as above
+  // TODO: Bad hack as above
   val birthTL: Int = modelOptions.initialPopulationTL
   val deathYear: Int = birthYear
 }

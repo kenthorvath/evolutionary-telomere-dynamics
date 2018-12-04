@@ -1,5 +1,21 @@
 /**
-  * Created by kent on 6/17/16.
+  * Simulator
+  * ---------
+  *
+  * Parameters: <pacAgeCenter> <crossOverYear> <brinkEffect> <cancerIncidenceAdjustment> <maternalInheritance> <initialPopulationTL> <runLength> <numberOfTrials> <outputFileName>
+  *
+  * - pacAgeCenter (None or a Double): PAC in years above which TL is added, below which subtracted
+  * - crossOverYear (None or an Int): Year that PAC model is switched on during simulation
+  * - brinkEffect (Boolean): Whether or not to include a brink effect in the model
+  * - cancerIncidenceAdjustment (Double): Scaling factor for cancer incidence (0.0 -> cancer incidence)
+  * - maternalInheritance (Double): Weight of inherited maternal birth TL (range -> 0.0 to 1.0)
+  * - initialPopulationTL (Int): Given in base pairs
+  * - runLength (Int): Given in years
+  * - numberOfTrials (Int): Must be greater than 1
+  * - outputFileName (String): path to write CSV output
+  *
+  * Author: Kent Horvath, MD PhD
+  * Date: October 6, 2016
   */
 
 import java.io._
@@ -42,6 +58,10 @@ object Simulator {
       }
       else ()
 
+      // Note: Using `par` here greatly speeds up the simulation, at the expense of deterministic output
+      // because the sequence in which elements are processed is a function of the state of the hardware and available
+      // resources during runtime.
+      // TODO: Use a clever functional programming pattern to make this deterministic under parallelism.
       val nextGeneration: List[Human] = femalePopulation.par
         .flatMap(mother => Try(List(Child(birthYear = currentYear, father = Random.shuffle(malePopulation).head,
           mother = mother, modelOptions = currentModel))).getOrElse(Nil)).toList

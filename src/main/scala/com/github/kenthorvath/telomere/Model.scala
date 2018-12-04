@@ -1,8 +1,15 @@
+/**
+  * Model
+  * -----
+  *
+  * A collection of epidemiological data and descriptions taken from CDC sources required for our models
+  *
+  * Author: Kent Horvath, MD PhD
+  * Date: October 6, 2016
+  */
+
 package com.github.kenthorvath.telomere
 
-/**
-  * Created by kent on 8/1/16.
-  */
 object Model {
 
   def baseProbabilityOfDeath(age: Int): Double = age match {

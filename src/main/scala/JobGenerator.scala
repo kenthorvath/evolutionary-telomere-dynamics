@@ -1,17 +1,28 @@
 /**
-  * Created by kent on 10/6/16.
+  * JobGenerator
+  * ------------
+  * Parameters: <run-length-in-years> <number-of-trials> <s3-bucket-name>
+  *
+  * Generates a concatenated series of shell scripts to stdout to run simulations with different
+  * combinations of parameters in batch (e.g. SLURM) and save output to a specified S3 bucket.
+  *
+  * Output may be processed with `split -l4` to generate individual shell scripts for each job.
+  *
+  * Author: Kent Horvath, MD PhD
+  * Date: October 6, 2016
   */
 
 object JobGenerator {
   def main(args: Array[String]): Unit = {
 
     if (args.length < 3) {
-      throw new Exception("usage: <runLength> <trialCount> <bucket-name>")
+      throw new Exception("Usage: <run-length-in-years> <number-of-trials> <s3-bucket-name>")
     }
     else {
       ()
     }
 
+    // Sets of simulation parameters to model are specified in `models` below and jobs will be generated for each combination
     val models = for {
       brinkEffect <- List(true)
       pacAgeCenter: String <- List("None") ++ ((15 to 55 by 5).map(_.toDouble) ++ (30 to 40 by 1).map(_.toDouble) ++ (34.0 to 35.0 by 0.1)).map(_.toString).toSet
