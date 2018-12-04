@@ -6,6 +6,7 @@
   *
   * Author: Kent Horvath, MD PhD
   * Date: October 6, 2016
+  * License: MIT
   */
 
 package com.github.kenthorvath.telomere

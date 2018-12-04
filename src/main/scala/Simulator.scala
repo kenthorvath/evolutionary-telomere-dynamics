@@ -16,6 +16,7 @@
   *
   * Author: Kent Horvath, MD PhD
   * Date: October 6, 2016
+  * License: MIT
   */
 
 import java.io._
