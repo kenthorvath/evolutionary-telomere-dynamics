@@ -2,7 +2,7 @@ lazy val root = (project in file(".")).
   settings(
     name := "pac-effect",
     version := "1.0",
-    scalaVersion := "2.11.8",
+    scalaVersion := "2.12.7",
     mainClass in Compile := Some("com.github.kenthorvath.Simulator")
   )
 
@@ -20,7 +20,7 @@ resolvers ++= Seq(
 lazy val commonSettings = Seq(
   version := "1.0",
   organization := "com.github.kenthorvath",
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.12.7",
   test in assembly := {}
 )
 

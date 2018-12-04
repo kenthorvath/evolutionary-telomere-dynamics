@@ -51,7 +51,7 @@ object JobGenerator {
     for (modelParameters <- models) yield {
       val counter: Int = Counter.next
       println(s"#!/bin/sh")
-      println(s"scala -cp ../target/scala-2.11/pac-effect-assembly-1.0.jar Simulator $modelParameters ../sbatch-output/model-$counter.csv &&")
+      println(s"scala -cp ../target/scala-2.12/pac-effect-assembly-1.0.jar Simulator $modelParameters ../sbatch-output/model-$counter.csv &&")
       println(s"aws s3 cp ../sbatch-output/model-$counter.csv s3://${args(2)}/")
       println(s"rm -f ../sbatch-output/model-$counter.csv")
     }
