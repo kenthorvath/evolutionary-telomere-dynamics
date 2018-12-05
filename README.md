@@ -25,11 +25,11 @@ Run the Simulator from the project root via:
   - `<pacAgeCenter>` (`None` or a `Double`): PAC in years above which TL is added, below which subtracted
   - `<crossOverYear>` (`None` or an `Int`): Year that PAC model is switched on during simulation
   - `<brinkEffect>` (`Boolean`): Whether or not to include a brink effect in the model
-  - `<cancerIncidenceAdjustment>` (`Double`): Scaling factor for cancer incidence (0.0 -> cancer incidence)
+  - `<cancerIncidenceAdjustment>` (`Double`): Scaling factor for cancer incidence (0.0 -> implies no cancer incidence)
   - `<maternalInheritance>` (`Double`): Weight of inherited maternal birth TL (range -> 0.0 to 1.0)
   - `<initialPopulationTL>` (`Int`): Given in base pairs
   - `<runLength>` (`Int`): Given in years
-  - `<numberOfTrials>` (`Int`): Must be greater than 1
+  - `<numberOfTrials>` (`Int`): Must be greater than or equal to 1
   - `<outputFileName>` (`String`): path to write CSV output
 
 Example: `scala -cp ./target/scala-2.12/pac-effect-assembly-1.0.jar Simulator 34.2 500 True 1.0 0.5 10000 1000 1 output.csv`
