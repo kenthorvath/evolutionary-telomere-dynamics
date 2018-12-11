@@ -3,7 +3,7 @@ lazy val root = (project in file(".")).
     name := "pac-effect",
     version := "1.0",
     scalaVersion := "2.12.7",
-    mainClass in Compile := Some("com.github.kenthorvath.Simulator")
+    mainClass in Compile := Some("Simulator")
   )
 
 libraryDependencies ++= Seq(
@@ -27,6 +27,6 @@ lazy val commonSettings = Seq(
 lazy val app = (project in file("app")).
   settings(commonSettings: _*).
   settings(
-    mainClass in assembly := Some("com.github.kenthorvath.Simulator")
+    mainClass in assembly := Some("Simulator")
   )
 
