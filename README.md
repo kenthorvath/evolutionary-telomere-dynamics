@@ -18,8 +18,12 @@ The following open source libraries and packages are required for compiling and 
 Compile the project from the project root directory using `sbt assembly`. 
 
 ## Run:
-Run the Simulator from the project root via:
-`scala -cp ./target/scala-2.12/pac-effect-assembly-1.0.jar Simulator <pacAgeCenter> <crossOverYear> <brinkEffect> <cancerIncidenceAdjustment> <maternalInheritance> <initialPopulationTL> <runLength> <numberOfTrials> <outputFileName>`
+### Commands:
+Run the Simulator from the project root via:  
+* `sbt "run <pacAgeCenter> <crossOverYear> <brinkEffect> <cancerIncidenceAdjustment> <maternalInheritance> <initialPopulationTL> <runLength> <numberOfTrials> <outputFileName>"`  
+
+Alternatively, run the compiled jar:  
+* `scala -cp ./target/scala-2.12/pac-effect-assembly-1.0.jar Simulator <pacAgeCenter> <crossOverYear> <brinkEffect> <cancerIncidenceAdjustment> <maternalInheritance> <initialPopulationTL> <runLength> <numberOfTrials> <outputFileName>`
 
 ### Parameters:
   - `<pacAgeCenter>` (`None` or a `Double`): PAC in years above which TL is added, below which subtracted
@@ -32,7 +36,9 @@ Run the Simulator from the project root via:
   - `<numberOfTrials>` (`Int`): Must be greater than or equal to 1
   - `<outputFileName>` (`String`): path to write CSV output
 
-Example: `scala -cp ./target/scala-2.12/pac-effect-assembly-1.0.jar Simulator 34.2 500 True 1.0 0.5 10000 1000 1 output.csv`
+### Examples: 
+* via sbt: `scala "run 34.2 500 True 1.0 0.5 10000 1000 1 output.csv"`
+* via compiled JAR: `scala -cp ./target/scala-2.12/pac-effect-assembly-1.0.jar Simulator 34.2 500 True 1.0 0.5 10000 1000 1 output.csv`
 
 ## References
 1. [Paternal Age and Transgenerational Telomere Length Maintenance: A Simulation Model](http://doi.org/10.1038/s41598-018-36923-x), 
